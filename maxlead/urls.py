@@ -28,7 +28,7 @@ urlpatterns = [
     url(r'^static/(?P<path>.*)$', static.serve,{ 'document_root': settings.STATIC_URL }),
     url(r'^download/(?P<path>.*)$', static.serve,{ 'document_root': settings.DOWNLOAD_URL }),
     url(r'^admin/maxlead_site/login/', Logins.userLogin),
-    url(r'^$', Logins.userLogin),
+    url(r'^$', stocks.index),
 
     # urls of max_stock
     url('^admin/max_stock/stock_spiders/', stock_views.stock_spiders),
