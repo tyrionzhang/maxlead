@@ -14,9 +14,13 @@ from django.http import HttpResponse
 # 第二个参数以某种人为的方式衡量时间
 schedule = sched.scheduler(time.time, time.sleep)
 
-def _set_user_sku():
+def _set_user_sku(request=None):
     sku_list = []
+    if request:
+        user = App.get_user_info(request)
     user_skus = SkuUsers.objects.filter().all()
+    if request and not user.user.is_superuser:
+        user_skus = user_skus.filter(user=user.user)
     if user_skus:
         for val in user_skus:
             sku_list.append(val.sku)
@@ -67,7 +71,7 @@ def stock_spiders(request):
         return HttpResponseRedirect("/admin/max_stock/login/")
     type = request.GET.get('type','')
     if type == 'now':
-        _set_user_sku()
+        _set_user_sku(request)
         q = queue.Queue()
 
         tname = 'stocks_done'
@@ -76,10 +80,10 @@ def stock_spiders(request):
         reviews.join()
         msg_str = 'Spiders is runing!'
     else:
-        t = threading.Timer(6.0, run_command_queue)
+        t = threading.Timer(54000.0, run_command_queue)
         # 持续运行，直到计划时间队列变成空为止
         t.start()
-        time_str = datetime.now() +  timedelta(seconds = 6)
+        time_str = datetime.now() +  timedelta(seconds = 54000)
         msg_str = 'Spiders will be runing!The time:%s' % time_str
     return render(request, "Stocks/spider/home.html", {'msg_str':msg_str})
 
@@ -94,4 +98,5 @@ def save_logs(data):
 
 def empty_data(request):
     WarehouseStocks.objects.filter().all().delete()
+    StockLogs.objects.filter().all().delete()
     return HttpResponse(request, 'Spiders is runing!Time:%s' % datetime.now())
