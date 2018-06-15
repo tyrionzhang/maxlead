@@ -14,6 +14,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 from django.conf.urls import url
+from maxlead_site.views.users.login import Logins
 # views of max_stock
 from max_stock.views import views as stock_views
 from max_stock.views import users as stock_users
@@ -26,6 +27,8 @@ urlpatterns = [
     # url(r'^admin/warehouse/spider/', warehouse_views.home),
     url(r'^static/(?P<path>.*)$', static.serve,{ 'document_root': settings.STATIC_URL }),
     url(r'^download/(?P<path>.*)$', static.serve,{ 'document_root': settings.DOWNLOAD_URL }),
+    url(r'^admin/maxlead_site/login/', Logins.userLogin),
+    url(r'^$', Logins.userLogin),
 
     # urls of max_stock
     url('^admin/max_stock/stock_spiders/', stock_views.stock_spiders),
