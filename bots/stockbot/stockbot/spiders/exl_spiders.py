@@ -26,7 +26,9 @@ class ExlSpider(scrapy.Spider):
     def parse(self, response):
         file_path = os.path.join(max_settings.BASE_DIR, max_settings.THRESHOLD_TXT, 'threshold_txt.txt')
         msg_str2 = ''
-        driver = webdriver.PhantomJS(executable_path=settings.PHANTOMJS_PATH)
+        fireFoxOptions = webdriver.FirefoxOptions()
+        fireFoxOptions.set_headless()
+        driver = webdriver.Firefox(firefox_options=fireFoxOptions)
         driver.get(response.url)
         elem_name = driver.find_elements_by_id('Loginmodule1_UserName')
         elem_pass = driver.find_elements_by_id('Loginmodule1_Password')
