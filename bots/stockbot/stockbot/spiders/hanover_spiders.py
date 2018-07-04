@@ -30,7 +30,7 @@ class HanoverSpider(scrapy.Spider):
         file_path = os.path.join(max_settings.BASE_DIR, max_settings.THRESHOLD_TXT, 'threshold_txt.txt')
         msg_str2 = ''
         fireFoxOptions = webdriver.FirefoxOptions()
-        fireFoxOptions.set_headless()
+        fireFoxOptions.add_argument('--headless')
         driver = webdriver.Firefox(firefox_options=fireFoxOptions)
         driver.get(response.url)
         elem_code = driver.find_elements_by_id('WarehouseCode')
