@@ -28,7 +28,8 @@ class ExlSpider(scrapy.Spider):
         file_path = os.path.join(max_settings.BASE_DIR, max_settings.THRESHOLD_TXT, 'threshold_txt.txt')
         msg_str2 = ''
         fireFoxOptions = webdriver.FirefoxOptions()
-        fireFoxOptions.add_argument('--headless')
+        fireFoxOptions.add_argument('-headless')
+        fireFoxOptions.add_argument('--disable-gpu')
         driver = webdriver.Firefox(firefox_options=fireFoxOptions)
         driver.get(response.url)
         elem_name = driver.find_elements_by_id('Loginmodule1_UserName')
