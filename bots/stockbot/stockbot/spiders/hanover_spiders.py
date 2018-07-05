@@ -29,13 +29,10 @@ class HanoverSpider(scrapy.Spider):
     def parse(self, response):
         file_path = os.path.join(max_settings.BASE_DIR, max_settings.THRESHOLD_TXT, 'threshold_txt.txt')
         msg_str2 = ''
-        from pyvirtualdisplay import Display
-        display = Display(visible=0, size=(800, 800))
-        display.start()
-        chrome_options = Options()
-        chrome_options.add_argument('--headless')
-        chrome_options.add_argument('--disable-gpu')
-        driver = webdriver.Chrome(chrome_options=chrome_options, executable_path=settings.CHROME_PATH, service_log_path=settings.LOG_PATH)
+        fireFoxOptions = webdriver.FirefoxOptions()
+        fireFoxOptions.add_argument('-headless')
+        fireFoxOptions.add_argument('--disable-gpu')
+        driver = webdriver.Firefox(firefox_options=fireFoxOptions)
         driver.get(response.url)
         elem_code = driver.find_elements_by_id('WarehouseCode')
         elem_acode = driver.find_elements_by_id('AccountCode')
