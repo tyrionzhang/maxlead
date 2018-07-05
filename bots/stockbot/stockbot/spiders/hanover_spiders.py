@@ -32,7 +32,7 @@ class HanoverSpider(scrapy.Spider):
         chrome_options = Options()
         chrome_options.add_argument('--headless')
         chrome_options.add_argument('--disable-gpu')
-        driver = webdriver.Chrome(chrome_options=chrome_options,executable_path=settings.CHROME_PATH)
+        driver = webdriver.Chrome(chrome_options=chrome_options)
         driver.get(response.url)
         elem_code = driver.find_elements_by_id('WarehouseCode')
         elem_acode = driver.find_elements_by_id('AccountCode')
