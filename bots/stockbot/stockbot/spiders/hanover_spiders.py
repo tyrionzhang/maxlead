@@ -35,7 +35,7 @@ class HanoverSpider(scrapy.Spider):
         fireFoxOptions = webdriver.FirefoxOptions()
         fireFoxOptions.add_argument('-headless')
         fireFoxOptions.add_argument('--disable-gpu')
-        driver = webdriver.Firefox(firefox_options=fireFoxOptions)
+        driver = webdriver.Firefox(executable_path= settings.FIREFOX_PATH, firefox_options=fireFoxOptions)
         driver.get(response.url)
         elem_code = driver.find_elements_by_id('WarehouseCode')
         elem_acode = driver.find_elements_by_id('AccountCode')

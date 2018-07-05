@@ -33,7 +33,7 @@ class ExlSpider(scrapy.Spider):
         fireFoxOptions = webdriver.FirefoxOptions()
         fireFoxOptions.add_argument('-headless')
         fireFoxOptions.add_argument('--disable-gpu')
-        driver = webdriver.Firefox(firefox_options=fireFoxOptions)
+        driver = webdriver.Firefox(executable_path= settings.FIREFOX_PATH, firefox_options=fireFoxOptions)
         driver.get(response.url)
         elem_name = driver.find_elements_by_id('Loginmodule1_UserName')
         elem_pass = driver.find_elements_by_id('Loginmodule1_Password')
