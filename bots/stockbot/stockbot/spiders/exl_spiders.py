@@ -93,7 +93,6 @@ class ExlSpider(scrapy.Spider):
                                 if user:
                                     msg_str2 += '%s=>SKU:%s,Warehouse:%s,QTY:%s,Early warning value:%s \n|' % (user[0].user.email,
                                                             item['sku'], item['warehouse'], item['qty'], threshold[0].threshold)
-        # display.stop()
         driver.quit()
 
         if not os.path.isfile(file_path):
