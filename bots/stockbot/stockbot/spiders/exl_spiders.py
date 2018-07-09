@@ -27,13 +27,10 @@ class ExlSpider(scrapy.Spider):
     def parse(self, response):
         file_path = os.path.join(max_settings.BASE_DIR, max_settings.THRESHOLD_TXT, 'threshold_txt.txt')
         msg_str2 = ''
-        # from pyvirtualdisplay import Display
-        # display = Display(visible=0, size=(800, 800))
-        # display.start()
-        fireFoxOptions = webdriver.FirefoxOptions()
-        fireFoxOptions.add_argument('-headless')
-        fireFoxOptions.add_argument('--disable-gpu')
-        driver = webdriver.Firefox(executable_path= settings.FIREFOX_PATH, firefox_options=fireFoxOptions)
+        chrome_options = Options()
+        chrome_options.add_argument('--headless')
+        chrome_options.add_argument('--disable-gpu')
+        driver = webdriver.Chrome(chrome_options=chrome_options, executable_path=settings.CHROME_PATH)
         driver.get(response.url)
         elem_name = driver.find_elements_by_id('Loginmodule1_UserName')
         elem_pass = driver.find_elements_by_id('Loginmodule1_Password')
