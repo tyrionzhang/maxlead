@@ -15,9 +15,12 @@ class ExlSpider(scrapy.Spider):
     start_urls = ['https://secure-wms.com/PresentationTier/LoginForm.aspx?3pl={073abe7b-9d71-414d-9933-c71befa9e569}']
     sku_list = []
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, username=None, *args, **kwargs):
         super(ExlSpider, self).__init__(*args, **kwargs)
-        file_path = os.path.join(max_settings.BASE_DIR, max_settings.THRESHOLD_TXT, 'userSkus_txt.txt')
+        file_name = 'userSkus_txt.txt'
+        if username:
+            file_name = 'userSkus_txt_%s.txt' % username
+        file_path = os.path.join(max_settings.BASE_DIR, max_settings.THRESHOLD_TXT, file_name)
         with open(file_path, "r") as f:
             sku_list = f.read()
             f.close()
@@ -27,10 +30,13 @@ class ExlSpider(scrapy.Spider):
     def parse(self, response):
         file_path = os.path.join(max_settings.BASE_DIR, max_settings.THRESHOLD_TXT, 'threshold_txt.txt')
         msg_str2 = ''
+        from pyvirtualdisplay import Display
+        display = Display(visible=0, size=(800, 800))
+        display.start()
         chrome_options = Options()
-        chrome_options.add_argument('--headless')
+        chrome_options.add_argument('-headless')
         chrome_options.add_argument('--disable-gpu')
-        driver = webdriver.Chrome(chrome_options=chrome_options, executable_path=settings.CHROME_PATH)
+        driver = webdriver.Chrome(chrome_options=chrome_options, executable_path=settings.CHROME_PATH, service_log_path=settings.LOG_PATH)
         driver.get(response.url)
         elem_name = driver.find_elements_by_id('Loginmodule1_UserName')
         elem_pass = driver.find_elements_by_id('Loginmodule1_Password')
@@ -48,14 +54,42 @@ class ExlSpider(scrapy.Spider):
         a_stock = driver.find_elements_by_css_selector('#Menu_Reports a')
         if a_stock:
             a_stock[0].click()
-        rows_res = driver.find_elements_by_id('CustomerFacilityGrid_div-rows')
-        list_rows = rows_res[0].find_elements_by_class_name('aw-text-normal')
+        list_rows = driver.find_elements_by_css_selector('#CustomerFacilityGrid_div-rows>span')
+        list_rows.pop(0)
+        list_rows.pop(-1)
         if list_rows:
             length = len(list_rows)
             for i in range(0, length):
                 if not i == 0:
-                    driver.get('https://secure-wms.com/PresentationTier/StockStatusReport.aspx')
-                    list_rows = driver.find_elements_by_css_selector('#CustomerFacilityGrid_div-rows .aw-text-normal')
+                    display.stop()
+                    from pyvirtualdisplay import Display
+                    display = Display(visible=0, size=(800, 800))
+                    display.start()
+                    chrome_options = Options()
+                    chrome_options.add_argument('-headless')
+                    chrome_options.add_argument('--disable-gpu')
+                    driver = webdriver.Chrome(chrome_options=chrome_options, executable_path=settings.CHROME_PATH,
+                                              service_log_path=settings.LOG_PATH)
+                    driver.get(response.url)
+                    elem_name = driver.find_elements_by_id('Loginmodule1_UserName')
+                    elem_pass = driver.find_elements_by_id('Loginmodule1_Password')
+                    btn_login = driver.find_elements_by_id('Loginmodule1_Submit1')
+                    # sel_stock = driver.find_elements_by_id('StockStatusViewer__ctl1__ctl5__ctl0')
+
+                    if elem_name:
+                        elem_name[0].send_keys('Maxlead_CS')
+                    if elem_pass:
+                        elem_pass[0].send_keys('2015dallas')
+                    btn_login[0].click()
+                    a_reports = driver.find_elements_by_id('Menu_Reports_head')
+                    if a_reports:
+                        a_reports[0].click()
+                    a_stock = driver.find_elements_by_css_selector('#Menu_Reports a')
+                    if a_stock:
+                        a_stock[0].click()
+                    list_rows = driver.find_elements_by_css_selector('#CustomerFacilityGrid_div-rows>span')
+                    list_rows.pop(0)
+                    list_rows.pop(-1)
                 warehouse_name = list_rows[i].find_elements_by_id('CustomerFacilityGrid_div-cell-1-%s' % i)
                 if warehouse_name:
                     warehouse_name = warehouse_name[0].text
@@ -68,6 +102,7 @@ class ExlSpider(scrapy.Spider):
                     driver.switch_to.frame(iframe1[0])
                 iframe2 = driver.find_elements_by_id('report')
                 driver.switch_to.frame(iframe2[0])
+                driver.implicitly_wait(100)
                 res = driver.find_elements_by_css_selector('.a383 tr')
                 res.pop(1)
                 res.pop(0)
@@ -93,6 +128,7 @@ class ExlSpider(scrapy.Spider):
                                 if user:
                                     msg_str2 += '%s=>SKU:%s,Warehouse:%s,QTY:%s,Early warning value:%s \n|' % (user[0].user.email,
                                                             item['sku'], item['warehouse'], item['qty'], threshold[0].threshold)
+        display.stop()
         driver.quit()
 
         if not os.path.isfile(file_path):
