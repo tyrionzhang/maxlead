@@ -45,6 +45,7 @@ class EmailSpider(scrapy.Spider):
         remembers = driver.find_elements_by_id('auth-mfa-remember-device')
         if remembers:
             remembers[0].click()
+            driver.implicitly_wait(100)
         if elem_code:
             elem_code[0].send_keys(code)
             btn_code_login[0].click()
