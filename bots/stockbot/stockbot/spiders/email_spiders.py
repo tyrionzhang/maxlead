@@ -17,11 +17,11 @@ class EmailSpider(scrapy.Spider):
     next_url = ''
 
     def parse(self, response):
-        # from pyvirtualdisplay import Display
-        # display = Display(visible=0, size=(800, 800))
-        # display.start()
+        from pyvirtualdisplay import Display
+        display = Display(visible=0, size=(800, 800))
+        display.start()
         chrome_options = Options()
-        # chrome_options.add_argument('-headless')
+        chrome_options.add_argument('-headless')
         chrome_options.add_argument('--disable-gpu')
         driver = webdriver.Chrome(chrome_options=chrome_options, executable_path=settings.CHROME_PATH,
                                   service_log_path=settings.LOG_PATH)
@@ -53,7 +53,8 @@ class EmailSpider(scrapy.Spider):
 
         elem_order = driver.find_elements_by_css_selector('#sc-top-nav-root a.sc-menu-trigger')
         if elem_order:
-            elem_order[0].click()
+            driver.get('https://sellercentral.amazon.com/gp/orders-v2/list/ref=ag_myo_tnav_xx_')
+            driver.implicitly_wait(100)
             selc_date = Select(driver.find_element_by_id('_myoLO_preSelectedRangeSelect'))
             selc_date.select_by_value('1')
             btn_search = driver.find_element_by_id('SearchID')
