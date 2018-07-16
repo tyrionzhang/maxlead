@@ -17,9 +17,9 @@ class EmailSpider(scrapy.Spider):
     next_url = ''
 
     def parse(self, response):
-        from pyvirtualdisplay import Display
-        display = Display(visible=0, size=(800, 800))
-        display.start()
+        # from pyvirtualdisplay import Display
+        # display = Display(visible=0, size=(800, 800))
+        # display.start()
         chrome_options = Options()
         # chrome_options.add_argument('-headless')
         chrome_options.add_argument('--disable-gpu')
