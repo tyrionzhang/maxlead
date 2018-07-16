@@ -107,3 +107,12 @@ def empty_data(request):
     WarehouseStocks.objects.filter().all().delete()
     StockLogs.objects.filter().all().delete()
     return HttpResponse(request, 'Spiders is runing!Time:%s' % datetime.now())
+
+def test(request):
+    work_path = settings.STOCHS_SPIDER_URL
+    os.chdir(work_path)
+    os.popen('scrapyd-deploy')
+
+    cmd_str2 = 'curl http://www.goldgg.cn:6800/schedule.json -d project=stockbot -d spider=test_spider'
+    os.popen(cmd_str2)
+    return render(request, "Stocks/spider/home.html", {'msg_str': 'Done!'})
