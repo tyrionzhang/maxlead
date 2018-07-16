@@ -17,10 +17,14 @@ class TestSpider(scrapy.Spider):
     next_url = ''
 
     def parse(self, response):
+        from pyvirtualdisplay import Display
+        display = Display(visible=0, size=(800, 800))
+        display.start()
         chrome_options = Options()
-        # chrome_options.add_argument('-headless')
+        chrome_options.add_argument('-headless')
         chrome_options.add_argument('--disable-gpu')
-        driver = webdriver.Chrome(chrome_options=chrome_options)
+        driver = webdriver.Chrome(chrome_options=chrome_options, executable_path=settings.CHROME_PATH,
+                                  service_log_path=settings.LOG_PATH)
         driver.get(response.url)
         elem_email = driver.find_elements_by_id('ap_email')
         elem_pass = driver.find_elements_by_id('ap_password')
