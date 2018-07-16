@@ -9,8 +9,8 @@ from bots.stockbot.stockbot.items import OrderItemsItem
 from max_stock.models import AmazonCode
 from django.core.mail import send_mail
 
-class TestSpider(scrapy.Spider):
-    name = "test_spider"
+class EmailSpider(scrapy.Spider):
+    name = "email_spider"
 
     # start_urls = ['https://docs.google.com/spreadsheets/d/1cIW9ksnTu-k0G2_bMYno56j7lep2IDdz7jsH_wQZMvw/edit#gid=0']
     start_urls = ['https://sellercentral.amazon.com/gp/homepage.html/ref=asus_login_hnav']
