@@ -64,5 +64,6 @@ urlpatterns = [
     url('^admin/max_stock/logs/', skus.logs),
     url('^admin/auto_email/code_index/', auto_email.code_index),
     url('^admin/auto_email/code_save/', auto_email.code_save),
+    url('^admin/auto_email/orders/', auto_email.orders),
 ]
 

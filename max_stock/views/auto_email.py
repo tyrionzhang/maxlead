@@ -3,12 +3,13 @@ import os,json
 from django.shortcuts import render,HttpResponse
 from django.http import HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
-from max_stock.models import AmazonCode
+from max_stock.models import AmazonCode,OrderItems
 from maxlead_site.views.app import App
 from maxlead import settings
 from max_stock.views import views
 from django.db.models import Count
-from django.core.mail import send_mail
+from django.db.models import Q
+
 
 @csrf_exempt
 def code_index(request):
@@ -46,4 +47,20 @@ def code_save(request):
             re = code_obj.update(code=code)
             if re:
                 return HttpResponse(json.dumps({'code': 1, 'msg': '保存成功！'}), content_type='application/json')
+
+@csrf_exempt
+def orders(request):
+    user = App.get_user_info(request)
+    if not user:
+        return HttpResponseRedirect("/admin/max_stock/login/")
+    keywords = request.GET.get('keywords', '')
+    order_list = OrderItems.objects.all()
+    if keywords:
+        code_list = order_list.filter(Q(order_id__contains=keywords)|Q(sku__contains=keywords)|Q(email__contains=keywords))
+    data = {
+        'order_list': order_list,
+        'user': user,
+        'title': 'Orders',
+    }
+    return render(request, "Stocks/auto_email/orders.html", data)
 
