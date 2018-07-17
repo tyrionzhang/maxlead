@@ -1,13 +1,10 @@
 # -*- coding: utf-8 -*-
-import os,json
+import json
 from django.shortcuts import render,HttpResponse
 from django.http import HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
 from max_stock.models import AmazonCode,OrderItems
 from maxlead_site.views.app import App
-from maxlead import settings
-from max_stock.views import views
-from django.db.models import Count
 from django.db.models import Q
 
 
@@ -56,7 +53,7 @@ def orders(request):
     keywords = request.GET.get('keywords', '')
     order_list = OrderItems.objects.all()
     if keywords:
-        code_list = order_list.filter(Q(order_id__contains=keywords)|Q(sku__contains=keywords)|Q(email__contains=keywords))
+        order_list = order_list.filter(Q(order_id__contains=keywords)|Q(sku__contains=keywords)|Q(email__contains=keywords))
     data = {
         'order_list': order_list,
         'user': user,

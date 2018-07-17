@@ -74,3 +74,13 @@ class Schedule(models.Model):
     class Meta:
         db_table = 'schedule'
 
+class Menus(models.Model):
+    name = models.CharField('Name', max_length=50)
+    users = models.ManyToManyField(User)
+    url = models.CharField('Url', max_length=50)
+    elem_id = models.CharField('ID', max_length=50)
+    created = models.DateTimeField('Create Date', auto_now_add=True)
+
+    class Meta:
+        db_table = 'Menus'
+

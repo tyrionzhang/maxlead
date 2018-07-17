@@ -21,6 +21,7 @@ from max_stock.views import users as stock_users
 from max_stock.views import users_sku as skus
 from max_stock.views import stocks
 from max_stock.views import auto_email
+from max_stock.views import setting
 from django.views import static
 from maxlead import settings
 
@@ -65,5 +66,7 @@ urlpatterns = [
     url('^admin/auto_email/code_index/', auto_email.code_index),
     url('^admin/auto_email/code_save/', auto_email.code_save),
     url('^admin/auto_email/orders/', auto_email.orders),
+    url('^admin/auto_email/setting/', setting.index),
+    url('^admin/auto_email/update_menus/', setting.update_menus),
 ]
 
