@@ -66,7 +66,9 @@ urlpatterns = [
     url('^admin/auto_email/code_index/', auto_email.code_index),
     url('^admin/auto_email/code_save/', auto_email.code_save),
     url('^admin/auto_email/orders/', auto_email.orders),
-    url('^admin/auto_email/setting/', setting.index),
-    url('^admin/auto_email/update_menus/', setting.update_menus),
+    url('^admin/setting/index/', setting.index),
+    url('^admin/setting/update_menus/', setting.update_menus),
+    url('^admin/setting/add_role/', setting.add_role),
+    url('^admin/setting/change_role/', setting.change_role),
 ]
 
