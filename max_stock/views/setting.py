@@ -23,13 +23,19 @@ def index(request):
     if user_id:
         index_user = User.objects.get(id=user_id)
     role_list = Roles.objects.all()
-    checked_role = 0
+    checked_role_code = 0
+    checked_role_id = 0
     for val in role_list:
         val.is_checked = 0
         if val.code == index_user.userprofile.stocks_role:
             val.is_checked = 1
-            checked_role = val.id
-    role_menus = Menus.objects.filter(roles__id=checked_role)
+            checked_role_code = val.code
+            checked_role_id = val.id
+    role_menus = Menus.objects.filter(roles__id=checked_role_id)
+    for val in user_list:
+        val.is_checked = 0
+        if val.userprofile.stocks_role == checked_role_code:
+            val.is_checked = 1
     role_ids = []
     if role_menus:
         for val in role_menus:
@@ -102,10 +108,77 @@ def change_role(request):
         user_obj.update(stocks_role=role_code)
         res = role_obj[0].menus_set.all()
         for val in res:
-            val.roles.filter(code=role_code).delete()
+            val.roles.remove(role_obj[0])
         objs = Menus.objects.filter(id__in=eval(box_menu_ids))
         if objs:
             for val in objs:
                 val.roles.add(role_obj[0])
         return HttpResponse(json.dumps({'code': 1, 'msg': 'Work is done!'}), content_type='application/json')
 
+@csrf_exempt
+def get_role_by_user(request):
+    user = App.get_user_info(request)
+    if not user:
+        return HttpResponse(json.dumps({'code': 66}), content_type='application/json')
+    if request.method == 'POST':
+        user_id = request.POST.get('user_id', '')
+        user_obj = User.objects.filter(id=user_id)
+        if not user_obj:
+            return HttpResponse(json.dumps({'code': 0, 'msg': 'User is not exits!'}),
+                                content_type='application/json')
+        return HttpResponse(json.dumps({'code': 1, 'data': {'role_code': user_obj[0].userprofile.stocks_role}}),
+                                content_type='application/json')
+
+@csrf_exempt
+def get_menus_by_role(request):
+    user = App.get_user_info(request)
+    if not user:
+        return HttpResponse(json.dumps({'code': 66}), content_type='application/json')
+    if request.method == 'POST':
+        role_code = request.POST.get('role_code', '')
+        menu_obj = Menus.objects.filter(roles__code=role_code)
+        menu_ids = []
+        if not menu_obj:
+            return HttpResponse(json.dumps({'code': 1, 'data': {'menus': menu_ids}}),
+                                content_type='application/json')
+        for val in menu_obj:
+            menu_ids.append(val.id)
+        return HttpResponse(json.dumps({'code': 1, 'data': {'menus': menu_ids}}),
+                            content_type='application/json')
+
+@csrf_exempt
+def get_role_user(request):
+    user = App.get_user_info(request)
+    if not user:
+        return HttpResponse(json.dumps({'code': 66}), content_type='application/json')
+    if request.method == 'POST':
+        role_code = request.POST.get('role_code', '')
+        user_list = User.objects.filter(userprofile__role=99)
+        if not user_list:
+            return HttpResponse(json.dumps({'code': 0}), content_type='application/json')
+        left_str = ''
+        right_str = ''
+        for val in user_list:
+            if val.userprofile.stocks_role == role_code and role_code:
+                right_str += '<option value="%s">%s</option>' % (val.id, val.username)
+            else:
+                left_str += '<option value="%s">%s</option>' % (val.id, val.username)
+        data = {'right_str': right_str, 'left_str': left_str}
+        return HttpResponse(json.dumps({'code': 1, 'data': data}), content_type='application/json')
+
+@csrf_exempt
+def get_save_role_user(request):
+    user = App.get_user_info(request)
+    if not user:
+        return HttpResponse(json.dumps({'code': 66}), content_type='application/json')
+    if request.method == 'POST':
+        role_code = request.POST.get('role_code', '')
+        user_ids = request.POST.get('user_ids', '')
+        if user_ids:
+            user_obj = UserProfile.objects.filter(stocks_role=role_code)
+            user_obj.update(stocks_role=0)
+            user_obj = UserProfile.objects.filter(user_id__in=eval(user_ids))
+            if not user_obj:
+                return HttpResponse(json.dumps({'code': 0, 'msg': 'User is not exits!'}), content_type='application/json')
+            user_obj.update(stocks_role=role_code)
+        return HttpResponse(json.dumps({'code': 1, 'msg': 'Work is done!'}), content_type='application/json')

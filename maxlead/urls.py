@@ -70,5 +70,9 @@ urlpatterns = [
     url('^admin/setting/update_menus/', setting.update_menus),
     url('^admin/setting/add_role/', setting.add_role),
     url('^admin/setting/change_role/', setting.change_role),
+    url('^admin/setting/get_role/', setting.get_role_by_user),
+    url('^admin/setting/get_menus/', setting.get_menus_by_role),
+    url('^admin/setting/get_role_user/', setting.get_role_user),
+    url('^admin/setting/get_save_role_user/', setting.get_save_role_user),
 ]
 
