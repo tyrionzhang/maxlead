@@ -108,4 +108,5 @@ class EmailSpider(scrapy.Spider):
             last_link_el = order_trs[-2].find_elements_by_css_selector('td tr>td:nth-child(3) a:last-child')
             if last_link_el:
                 self.next_url = last_link_el[0].get_attribute('href')
+        display.stop()
         driver.quit()
