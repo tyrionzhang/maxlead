@@ -62,6 +62,7 @@ def update_menus(request):
     if not user:
         return HttpResponse(json.dumps({'code': 66}), content_type='application/json')
     menus = update_res.MENUS
+    roles = update_res.ROLES
     querysetlist = []
     for val in  menus:
         menu = Menus.objects.filter(name=val['name'],elem_id=val['elem_id'])
@@ -69,6 +70,18 @@ def update_menus(request):
             querysetlist.append(Menus(name=val['name'], elem_id=val['elem_id'], url=val['url']))
     if querysetlist:
         Menus.objects.bulk_create(querysetlist)
+    for val in roles:
+        role = Roles.objects.filter(code=val['code'])
+        if not role:
+            role_obj = Roles()
+            role_obj.id
+            role_obj.name = val['name']
+            role_obj.code = val['code']
+            role_obj.save()
+            menu_obj = Menus.objects.filter(name__in=val['menus'])
+            if menu_obj:
+                for menu in menu_obj:
+                    menu.roles.add(role_obj)
     return HttpResponse(json.dumps({'code': 1, 'msg': 'Work is done!'}), content_type='application/json')
 
 @csrf_exempt

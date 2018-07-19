@@ -42,3 +42,11 @@ MENUS = [
         'elem_id' : 'logs'
     }
 ]
+
+ROLES = [
+    {
+        'name': 'leader',
+        'code': '66',
+        'menus': ['Review Data', 'Threshold', 'UserAdmin', 'UsersSku', 'Logs']
+    }
+]
