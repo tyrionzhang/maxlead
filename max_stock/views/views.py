@@ -49,9 +49,9 @@ class perform_command_que(threading.Thread):
         os.chdir(work_path)
         os.popen('scrapyd-deploy')
 
-        cmd_str2 = 'curl http://www.goldgg.cn:36800/schedule.json -d project=stockbot -d spider=twu_spider'
-        cmd_str1 = 'curl http://www.goldgg.cn:36800/schedule.json -d project=stockbot -d spider=hanover_spider'
-        cmd_str3 = 'curl http://www.goldgg.cn:36800/schedule.json -d project=stockbot -d spider=exl_spider'
+        cmd_str2 = 'curl http://www.goldgg.cn:6800/schedule.json -d project=stockbot -d spider=twu_spider'
+        cmd_str1 = 'curl http://www.goldgg.cn:6800/schedule.json -d project=stockbot -d spider=hanover_spider'
+        cmd_str3 = 'curl http://www.goldgg.cn:6800/schedule.json -d project=stockbot -d spider=exl_spider'
         # cmd_str4 = 'curl http://localhost:6800/schedule.json -d project=stockbot -d spider=exl1_spider'
         os.popen(cmd_str2)
         os.popen(cmd_str1)
@@ -113,6 +113,6 @@ def test(request):
     os.chdir(work_path)
     os.popen('scrapyd-deploy')
 
-    cmd_str2_test = 'curl http://localhost:36800/schedule.json -d project=stockbot -d spider=email_spider'
+    cmd_str2_test = 'curl http://localhost:6800/schedule.json -d project=stockbot -d spider=email_spider'
     os.popen(cmd_str2_test)
     return render(request, "Stocks/spider/home.html", {'msg_str': 'Done!'})
