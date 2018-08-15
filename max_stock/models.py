@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+import django.utils.timezone as timezone
 
 # Create your models here.
 class Thresholds(models.Model):
@@ -48,25 +49,53 @@ class AmazonCode(models.Model):
 
 class OrderItems(models.Model):
     order_id = models.CharField('Order Id', max_length=225)
-    sku = models.CharField('SKU', max_length=50)
+    sku = models.CharField('SKU', max_length=225)
     order_status = models.CharField('Status', max_length=50)
-    email = models.CharField('Email', max_length=50)
+    email = models.CharField('Email', max_length=225)
+    customer = models.CharField('Customer', max_length=225, default=None)
     is_email = models.IntegerField('Is Email', default=0)
+    is_presale = models.IntegerField('Presale', default=0)
+    payments_date = models.DateTimeField('Payments Date', default = timezone.now)
     created = models.DateTimeField('Create Date', auto_now_add=True)
 
     class Meta:
         db_table = 'order_items'
 
-class Templates(models.Model):
+class OldOrderItems(models.Model):
+    order_id = models.CharField('Order Id', max_length=225)
     sku = models.CharField('SKU', max_length=50)
-    content = models.TextField('Content')
+    order_status = models.CharField('Status', max_length=50)
+    email = models.CharField('Email', max_length=225)
+    customer = models.CharField('Customer', max_length=225)
+    is_email = models.IntegerField('Is Email', default=0)
+    is_presale = models.IntegerField('Presale', default=1)
+    payments_date= models.DateTimeField('Payments Date', null=True)
     created = models.DateTimeField('Create Date', auto_now_add=True)
 
     class Meta:
-        db_table = 'templates'
+        db_table = 'old_order_items'
+
+class NoSendRes(models.Model):
+    sku = models.CharField('SKU', max_length=50)
+    created = models.DateTimeField('Create Date', auto_now_add=True)
+
+    class Meta:
+        db_table = 'no_send_res'
+
+class EmailTemplates(models.Model):
+    sku = models.CharField('SKU', max_length=50)
+    keywords = models.CharField('Keywords', max_length=20, default=None)
+    title = models.CharField('Title', max_length=255)
+    content = models.TextField('Content')
+    order_status = models.IntegerField('Order Status', default=0)
+    send_time = models.CharField('Send Time', max_length=20, default=None)
+    created = models.DateTimeField('Create Date', auto_now_add=True)
+
+    class Meta:
+        db_table = 'email_templates'
 
 class Schedule(models.Model):
-    templates = models.ForeignKey(Templates, on_delete=models.CASCADE)
+    templates = models.ForeignKey(EmailTemplates, on_delete=models.CASCADE)
     sku = models.CharField('SKU', max_length=50)
     time_str = models.CharField('Time Str', max_length=50)
     created = models.DateTimeField('Create Date', auto_now_add=True)
@@ -83,6 +112,7 @@ class Roles(models.Model):
 
 class Menus(models.Model):
     name = models.CharField('Name', max_length=50)
+    parent_id = models.IntegerField('Parent', default=0)
     roles = models.ManyToManyField(Roles)
     url = models.CharField('Url', max_length=50)
     elem_id = models.CharField('ID', max_length=50)

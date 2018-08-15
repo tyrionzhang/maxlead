@@ -18,7 +18,7 @@ def index(request):
         return HttpResponseRedirect("/admin/max_stock/login/")
     user_id = request.GET.get('user_id', '')
     list = Menus.objects.all()
-    user_list = User.objects.filter(userprofile__role=99)
+    user_list = User.objects.filter()
     index_user = user_list[0]
     if user_id:
         index_user = User.objects.get(id=user_id)
@@ -61,13 +61,23 @@ def update_menus(request):
     user = App.get_user_info(request)
     if not user:
         return HttpResponse(json.dumps({'code': 66}), content_type='application/json')
+    menus0 = update_res.MENUS0
     menus = update_res.MENUS
     roles = update_res.ROLES
+    querysetlist0 = []
     querysetlist = []
-    for val in  menus:
+    Menus.objects.all().delete()
+    for val in  menus0:
         menu = Menus.objects.filter(name=val['name'],elem_id=val['elem_id'])
         if not menu:
-            querysetlist.append(Menus(name=val['name'], elem_id=val['elem_id'], url=val['url']))
+            querysetlist0.append(Menus(name=val['name'], elem_id=val['elem_id'], url=val['url']))
+    if querysetlist0:
+        Menus.objects.bulk_create(querysetlist0)
+    for val in menus:
+        menu = Menus.objects.filter(name=val['name'], elem_id=val['elem_id'])
+        parent = Menus.objects.filter(name=val['parent'])
+        if not menu:
+            querysetlist.append(Menus(name=val['name'], elem_id=val['elem_id'], url=val['url'], parent_id=parent[0].id))
     if querysetlist:
         Menus.objects.bulk_create(querysetlist)
     for val in roles:
@@ -166,15 +176,15 @@ def get_role_user(request):
         return HttpResponse(json.dumps({'code': 66}), content_type='application/json')
     if request.method == 'POST':
         role_code = request.POST.get('role_code', '')
-        user_list = User.objects.filter(userprofile__role=99)
+        user_list = User.objects.filter()
         if not user_list:
             return HttpResponse(json.dumps({'code': 0}), content_type='application/json')
         left_str = ''
         right_str = ''
         for val in user_list:
-            if val.userprofile.stocks_role == role_code and role_code:
+            if role_code and val.userprofile.stocks_role == role_code:
                 right_str += '<option value="%s">%s</option>' % (val.id, val.username)
-            else:
+            elif val.userprofile.stocks_role == '0' and not val.is_superuser:
                 left_str += '<option value="%s">%s</option>' % (val.id, val.username)
         data = {'right_str': right_str, 'left_str': left_str}
         return HttpResponse(json.dumps({'code': 1, 'data': data}), content_type='application/json')
@@ -189,7 +199,7 @@ def get_save_role_user(request):
         user_ids = request.POST.get('user_ids', '')
         if user_ids:
             user_obj = UserProfile.objects.filter(stocks_role=role_code)
-            user_obj.update(stocks_role=0)
+            user_obj.update(stocks_role='0')
             user_obj = UserProfile.objects.filter(user_id__in=eval(user_ids))
             if not user_obj:
                 return HttpResponse(json.dumps({'code': 0, 'msg': 'User is not exits!'}), content_type='application/json')
