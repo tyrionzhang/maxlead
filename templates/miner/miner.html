@@ -1,0 +1,193 @@
+{% extends "layouts/page_base.html" %}
+    {% block container %}
+            <main class="miner">
+                <h2>Miner</h2>  
+                <button id="addNewMiner" class="headButton" type="button"/>New Task</button>
+                <button id="updateNewMiner" class="headButton" type="button"/>Update Task</button>
+                <div id="addMinerTask" style="display:none;">
+                    <form method = "post" action="" name="newTaskForm" />
+                    <h3>New Task</h3>
+                    <label>Type:</label>
+                    <input type="radio" name="taskType" value="0" /> Review
+                    <input type="radio" name="taskType" value="1" /> QA<br /><br />
+                    <label>Name:</label> <input type="text" name="taskName" /><br /><br />
+                    <label>Description:</label> <textarea name = "taskDesc" rows=2 cols=30></textarea><br /><br />
+                    <label>ASIN List:</label> <textarea name = "taskASIN" rows=7 cols=18></textarea><br /><br />
+                    <div class="actionButton">
+                        <input type="button" value="Add" id="task_add"/>  <input id="nmtCancel" type = "button" onclick="" value="Cancel" />
+                    </div>
+                </div>
+                <table cellspacing="0px">
+                    <tr id="th-task"><th>Name</th><th>Type</th><th>Description</th><th>Request Time</th><th>Finish Time</th><th>Action</th><th>Fun</th></tr>
+                    {% for v in data %}
+                    <tr id="tr_task_{{ v.id }}">
+                        <td>{{ v.name }}</td>
+                        <td>{{ v.type }}</td>
+                        <td>{{ v.description }}</td>
+                        <td>{{ v.created }}</td>
+                        <td>{{ v.finish_time }}</td>
+                        <td>
+                            <span class="minerAction">
+                                {% if v.file_path %}
+                                    <a href="\{{ v.file_path }}">Export</a>
+                                {% else %}
+                                    Proccessing
+                                {% endif %}
+
+                            </span>
+                        </td>
+                        <td><a href="javascript:;" class="minner-del" data-id="{{ v.id }}">delete</a></td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                
+            
+            <form action="" method="get" name="pageForm" id="page_form">
+                <div id="pagination">
+                    <div class="pageNum">
+                        <p class="pageStatics"> {{ total_count }} <!--符合当前查询条件的数量-->results in  {{ data.paginator.num_pages }} <!--总页数-->pages.
+                    </p>
+                        <ul>
+                            {% if data.has_previous %}
+                            <li><a href="?page={{ data.previous_page_number }}&limit={{ limit }}&viewRange={{ viewRange }}">previous</a></li>
+                            {% endif %}
+                            <li>Page {{ data.number }} of {{ data.paginator.num_pages }}.</li>
+                            {% if data.has_next %}
+                            <li><a href="?page={{ data.next_page_number }}&limit={{ limit }}&viewRange={{ viewRange }}">next</a></li>
+                            {% endif %}
+                            <li><input type="number" name="page" value="{{ page }}" /></li>
+                            <li><input type="submit" name="gotoPage" value="Go" id="gotoPage" /></li>
+                        </ul>
+
+                    <div class="qtyUpdater">
+                        <select name="limit">
+                            <option value="20" {% if re_limit == 20 %}selected{% endif %}>20</option>
+                            <option value="50" {% if re_limit == 50 %}selected{% endif %}>50</option>
+                            <option value="100" {% if re_limit == 100 %}selected{% endif %}>100</option>
+                        </select> results per page.
+                    </div>
+
+                    </div>
+                </div>
+            </form>
+            </main>
+        <script>
+            get_export_fun();
+            function pstr(s) {
+                return s < 10 ? '0' + s: s;
+            }
+
+            $('#task_add').on('click',function () {
+                var myDate = new Date();
+                //获取当前年
+                var year=myDate.getFullYear();
+                //获取当前月
+                var month=myDate.getMonth()+1;
+                //获取当前日
+                var date=myDate.getDate();
+                var h=myDate.getHours();       //获取当前小时数(0-23)
+                var m=myDate.getMinutes();     //获取当前分钟数(0-59)
+                var s=myDate.getSeconds();
+
+                var now=year+'-'+pstr(month)+"-"+pstr(date)+" "+pstr(h)+':'+pstr(m)+":"+pstr(s);
+                var data = {
+                    'taskType':$('input[name="taskType"]:checked').val(),
+                    'taskName':$('input[name="taskName"]').val(),
+                    'taskDesc':$('textarea[name="taskDesc"]').val(),
+                    'taskASIN':$('textarea[name="taskASIN"]').val()
+                };
+                $(this).attr('disabled',true);
+                var type = $('input[name="taskType"]:checked').val() == 0?'Review':'QA';
+                $('#th-task').after('<tr id="tr_task_new">' +
+                    '<td>'+data['taskName']+'</td>' +
+                    '<td>'+type+'</td>' +
+                    '<td>'+data['taskDesc']+'</td>' +
+                    '<td>'+now+'</td>' +
+                    '<td></td>' +
+                    '<td><span class="minerAction">Proccessing</span></td></tr>');
+                $('#addMinerTask').attr('style','display:none;');
+                $.post('/admin/maxlead_site/task_add/',data,function (re) {
+                    if(re.code==1){
+                        if(re.data['f_time'] == 'finish'){
+                            if(confirm('任务已经存在，直接下载？')){
+                                window.location.href='/'+re.data['file_path'];
+                            }
+                            $('#tr_task_new').remove();
+                            return false;
+                        }
+                        $('#tr_task_new').remove();
+                        $('#th-task').after('<tr id="tr_task_new">' +
+                            '<td>'+data['taskName']+'</td>' +
+                            '<td>'+type+'</td>' +
+                            '<td>'+data['taskDesc']+'</td>' +
+                            '<td>'+now+'</td>' +
+                            '<td>'+re.data['f_time']+'</td>' +
+                            '<td><span class="minerAction"><a href="/'+re.data['file_path']+'">Export</a></span></td></tr>');
+                        window.location.reload();
+                    }else{
+                        alert(re.msg);
+                        $('#addMinerTask').attr('style','display:none;');
+                    }
+                    window.location.reload();
+                },'json');
+            });
+
+            $('#gotoPage').on('click',function () {
+                var page = $('input[name="page"]').val();
+                var limit = $('select[name="limit"]').val();
+                var viewRange = $('select[name="viewRange"]').val();
+                var url = '/admin/maxlead_site/miner/?page='+page+'&limit='+limit+'&viewRange='+viewRange;
+                window.location.href = url;
+                return false;
+            });
+
+            $('select[name="limit"]').on('change',function () {
+                var page = $('input[name="page"]').val();
+                var limit = $('select[name="limit"]').val();
+                var viewRange = $('select[name="viewRange"]').val();
+                var url = '/admin/maxlead_site/miner/?page='+page+'&limit='+limit+'&viewRange='+viewRange;
+                window.location.href = url;
+                return false;
+            });
+
+            function get_export_fun() {
+                $.get('/admin/maxlead_site/ajax_get_miner_data/',{},function (re) {
+                    if(re.code == 1 && re.data.length>0){
+                        $.each(re.data,function(index,value){
+                            var elstr = "#tr_task_"+value['id'];
+                            var a = "<a href='/"+value['file_path']+"'>Export</a>";
+                            $(elstr).find('td').eq(4).html(value['f_time']);
+                            $(elstr).find('td').eq(5).find('span').html(a);
+                        });
+                    }
+                },'json');
+            }
+            window.setInterval(function() {
+                get_export_fun();
+            }, 600000);
+
+            $('#updateNewMiner').click(function () {
+                alert('更新已开始！');
+                $.get('/admin/maxlead_site/ajax_get_task_data/',{},function (re) {
+                    if(re.code == 1){
+                        alert('更新成功！');
+                    }
+                },'json');
+            });
+            $('.minner-del').click(function () {
+               var task_id = $(this).data('id');
+               if(confirm('确定删除？')){
+                   $.get('/admin/maxlead_site/delete_task_data/',{'task_id':task_id},function (re) {
+                        if(re.code == 1){
+                            alert('删除成功！');
+                            $('#tr_task_'+task_id).remove();
+                        }else {
+                            alert(re.msg);
+                        }
+
+                    },'json');
+               }
+            });
+        </script>
+{% endblock %}
+

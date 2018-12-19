@@ -1,0 +1,404 @@
+{% extends "layouts/page_base.html" %}
+    {% block container %}
+            <main class="listMgm">
+                <h2>Listing Management</h2>
+                <p>I'm watching on XXX<!--当前用户关注的且status为ON的listing的数量--> listings for you. I'll be more efficient if unnecessary listings are turned off in time.</p><hr>
+                <form method="get" action="" name="listSearchForm" autocomplete="autocomplete" autofocus="autofocus">
+                    <input type="search" name="listKwd" value="{{ listKwd }}" />
+                    <input type="submit" value="Search" /><br />
+                    <input type="radio" name="searchCol" value="SKU" {% if searchCol == 'SKU' %}checked{% endif %}/>SKU
+                    <input type="radio" name="searchCol" value="ASIN" {% if searchCol == 'ASIN' %}checked{% endif %}/>ASIN
+                    <input type="radio" name="searchCol" value="title" {% if searchCol == 'title' %}checked{% endif %} />Title
+                    <input type="radio" name="searchCol" value="brand" {% if searchCol == 'brand' %}checked{% endif %}/>Brand
+                         Ownership: <select name="owner">
+                        <option value="">All</option>
+                        <option value="Ours" {% if owner == "Ours" %}selected{% endif %}>Ours</option>
+                        <option value="Others" {% if owner == "Others" %}selected{% endif %}>Others</option></select>
+                        Buybox: <select name="buybox">
+                        <option value="">All</option>
+                        <option value="Ours" {% if buybox == "Ours" %}selected{% endif %}>Ours</option>
+                        <option value="Others" {% if buybox == "Others" %}selected{% endif %}>Others</option></select>
+                        Status: <select name="status">
+                        <option value="">All</option>
+                        <option value="1" {% if status == '1' %}selected{% endif %}>ON</option>
+                        <option value="0" {% if liststatus == '0' %}selected{% endif %}>OFF</option></select>
+                        Review Watcher: <select name="revstatus">
+                        <option value="">All</option>
+                        <option value="1" {% if revstatus == '1' %}selected{% endif %}>ON</option>
+                        <option value="0" {% if revstatus == '0' %}selected{% endif %}>OFF</option></select>
+                        Listing Watcher: <select name="liststatus">
+                        <option value="">All</option>
+                        <option value="1" {% if liststatus == '1' %}selected{% endif %}>ON</option>
+                        <option value="0" {% if liststatus == '0' %}selected{% endif %}>OFF</option></select>
+                </form>
+                <div >
+                    <button class="funcButtons" type="button" id="update_listing">Update List</button>
+                    <button class="funcButtons" type="button" id="addASINButton">Add</button>
+                    <button class="funcButtons" type="button" id="editASINButton">Edit</button>
+                    <button class="funcButtons" type="button" id="delASINButton">Delete</button>
+                    <button class="funcButtons" type="button" id="status_on">Turn ON</button>
+                    <button class="funcButtons" type="button" id="status_off">Turn OFF</button>
+                </div>
+                <table cellspacing=0>
+                    <tr><th><input type="checkbox" name="selectallListing" value="all" id="selectAllListing"/></th><th>Image</th><th>Title</th><th>Brand</th><th>Price</th><th>Review</th><th>Score</th><th>BSR</th><th>Buybox</th><th>Status</th><th>Review<br />Watcher</th><th>Listing<br />Watcher</th><th>Last Check</th></tr>
+                    <tr><td colspan="13"><hr></td></tr>
+                    {% for val in res %}
+                    <tr>
+                        <td><input type="checkbox" name="selectListing" value="{{ val.user_asin.id }}"  /></td>
+                        <td>{% if val.id %}<img src="{{ val.image_thumbs }}" class="listMgmPic"/>{% endif %}</td>
+                        <td>
+                            <a title="{{ val.title }}" {% if val.id %}href="/admin/maxlead_site/listing_item/?asin={{ val.asin }}"{% endif %}><SPAn class="listingTitle">{{ val.title1 }}</span><span class="listingASIN">{{ val.asin }}</SPAN><span class="listingSKU">{{ val.sku }}</span></a></td><td>{{ val.brand }}</td><td>{{ val.price }}<BR> {{ val.price2 }}</td><td>{{ val.total_review }}<BR> {{ val.total_review2 }}</td><td>{{ val.rvw_score }}<br> {{ val.rvw_score2 }}</td><td>{{ val.category_rank }}<br>{{ val.category_rank2 }}</td><td>{{ val.buy_box_res }}</td><td><span class="{% if val.user_asin.is_use == 1 %}asinON{% else %}asinOFF{% endif %}" ></span></td><td><span class="{% if val.user_asin.review_watcher == 1 %}rvON{% else %}rvOFF{% endif %}" ></span><!--开启状态为statusON,关闭为statusOFF--></td><td><span class="{% if val.user_asin.listing_watcher == 1 %}listON{% else %}listOFF{% endif %}" ></span></td><td><span class="lastCheck">{{ val.last_check }}</span></td></tr>
+                    {% endfor %}
+                </table>
+                <hr>
+                <input type="checkbox" name="selectallListing" value="all" id="selectAllListing2"/>
+                <form name="export-form" action="/admin/maxlead_site/listing_export/" method="post">
+                    <input type="hidden" name="data" id="export-data" value=""/>
+                    <button class="funcButtons" type="submit" id="btn-export">Export</button>
+                </form>
+                <div id="editASIN"  style="display:none;">
+                    <h3>Basic Info</h3>
+                        <input type="hidden" name="ids" value="" id="editASIN_id"/>
+                        <div class="basicInfo">*ASIN<br><textarea name="newASIN" rows=5 cols=18 title="每个ASIN请用|隔开">每个ASIN请用|隔开</textarea><!--如果是通过编辑进来，增加readonly属性--></div>
+                        <div class="basicInfo">SKU<br><textarea name="newSKU" rows="5" cols="18" title="每个SKU请用|隔开,ASIN与SKU一一对应">每个SKU请用|隔开</textarea></div>
+                        <div class="basicInfo">
+                            *Ownership: <input type="radio" name="ownership" value="Ours" />Ours  <input type="radio" name="ownership" value="Others" />Others<br />
+                            *Status: <input type="radio" name="status" value="1" />ON  <input type="radio" name="status" value="0" />OFF<br />
+                            *Review Watcher: <input type="radio" name="revWatcher" value="1" />ON  <input type="radio" name="revWatcher" value="0" />OFF<br />
+                            *Listing Watcher: <input type="radio" name="listWatcher" value="1" />ON  <input type="radio" name="listWatcher" value="0" />OFF
+                        </div>
+                        <div><span style="font-size:13px"><i>*</i> 每个ASIN和SKU请用‘|’隔开。</span></div>
+                        <div class="kwdTracking">
+                            <h3>Keywords Tracking</h3>
+                            Keyword Set 1: <input type="text" name="kwdSet1" title="3 keywords/set max. separated by comma" />  Category Node: <input type="number" name="cat1" title="category node ID, number only"/><br />
+                            Keyword Set 2: <input type="text" name="kwdSet2" title="3 keywords/set max. separated by comma"/>  Category Node: <input type="number" title="category node ID, number only" name="cat2" /><br />
+                            Keyword Set 3: <input type="text" name="kwdSet3" title="3 keywords/set max. separated by comma"/>  Category Node: <input type="number" title="category node ID, number only" name="cat3" /><br />
+                        </div>
+                        <div><span style="font-size:13px"><i>*</i> Keywords请用‘,’隔开。</span></div>
+                        <div class="listActionButton"><input type="submit" value="Add" id="btn-asin-add"/><input type="button" value="Cancel" id="editASINCancel"/></div>
+                </div>
+        <form action="" method="get" name="pageForm" id="page_form">
+                <div id="pagination">
+                    <div class="pageNum">
+                        <p class="pageStatics"> {{ total_count }} <!--符合当前查询条件的数量-->results in {{ list_data.paginator.num_pages }} <!--总页数-->pages.
+                    </p>
+                        <ul>
+                            {% if list_data.has_previous %}
+                            <li><a href="?page={{ list_data.previous_page_number }}&limit={{ limit }}&listKwd={{ listKwd }}&searchCol={{ searchCol }}&owner=&buybox={{ buybox }}&status={{ status }}&revstatus={{ revstatus }}&liststatus={{ liststatus }}&viewRange={{ viewRange }}">previous</a></li>
+                            {% endif %}
+                            <li>Page {{ list_data.number }} of {{ list_data.paginator.num_pages }}.</li>
+                            {% if list_data.has_next %}
+                            <li><a href="?page={{ list_data.next_page_number }}&limit={{ limit }}&listKwd={{ listKwd }}&searchCol={{ searchCol }}&owner=&buybox={{ buybox }}&status={{ status }}&revstatus={{ revstatus }}&liststatus={{ liststatus }}&viewRange={{ viewRange }}">next</a></li>
+                            {% endif %}
+                            <li><input type="number" name="page" value="{{ page }}" /></li>
+                            <li><input type="submit" name="gotoPage" value="Go" id="gotoPage" /></li>
+                        </ul>
+
+                    <div class="qtyUpdater">
+                        <select name="limit">
+                            <option value="20" {% if limit_re == 20 %}selected{% endif %}>20</option>
+                            <option value="50" {% if limit_re == 50 %}selected{% endif %}>50</option>
+                            <option value="100" {% if limit_re == 100 %}selected{% endif %}>100</option>
+                        </select> results per page.
+                    </div>
+
+                    </div>
+                </div>
+        </form>
+            </main>
+        <script>
+        var viewRange = $('select[name="viewRange"]').val();
+        var viewrange_el = '<input type="hidden" name="viewRange" value="'+viewRange+'">';
+        $('form[name="listSearchForm"]').append(viewrange_el);
+            $("#btn-asin-add").on('click',function () {
+                $(this).attr('disabled',"true");
+                var newASIN = $("textarea[name='newASIN']").val();
+                var data = {
+                    'ids':$('input[name="ids"]').val(),
+                    'newASIN':$("textarea[name='newASIN']").val(),
+                    'newSKU':$("textarea[name='newSKU']").val(),
+                    'ownership':$("input[name='ownership']:checked").val(),
+                    'status':$("input[name='status']:checked").val(),
+                    'revWatcher':$("input[name='revWatcher']:checked").val(),
+                    'listWatcher':$("input[name='listWatcher']:checked").val(),
+                    'kwdSet1':$("input[name='kwdSet1']").val(),
+                    'kwdSet2':$("input[name='kwdSet2']").val(),
+                    'kwdSet3':$("input[name='kwdSet3']").val(),
+                    'cat1':$("input[name='cat1']").val(),
+                    'cat2':$("input[name='cat2']").val(),
+                    'cat3':$("input[name='cat3']").val()
+                };
+                $.post('/admin/maxlead_site/add_asin/',data,function (re) {
+                    if(re.code==1){
+                        alert(re.msg);
+                        $('#editASIN').attr('style','display:none;');
+                        if(re.type == 'add'){
+                            $.post('/admin/maxlead_site/add_run_spiders/',{'asins':newASIN},
+                                function (re) {
+                                if(re.code == 1){
+                                    window.location.reload();
+                                }
+                            },'json');
+                        }
+                        window.location.reload();
+                    }else{
+                        alert(re.msg);
+                        $('#btn-asin-add').removeAttr('disabled');
+                    }
+                },'json')
+            });
+        $('#addASINButton').on('click',function () {
+            $('#editASIN_id').remove();
+            $('textarea[name="newASIN"]').val('');
+            $('textarea[name="newASIN"]').removeAttr('readonly');
+            $('textarea[name="newSKU"]').val('');
+            $('input[name="status"]').removeAttr('checked');
+            $('input[name="ownership"]').removeAttr('checked');
+            $('input[name="revWatcher"]').removeAttr('checked');
+            $('input[name="listWatcher"]').removeAttr('checked');
+            $('input[name="kwdSet1"]').val('');
+            $('input[name="kwdSet2"]').val('');
+            $('input[name="kwdSet3"]').val('');
+            $('input[name="cat1"]').val('');
+            $('input[name="cat2"]').val('');
+            $('input[name="cat3"]').val('');
+            $('#btn-asin-add').val('Add');
+        });
+        $('#editASINButton').on('click',function () {
+            var asins = [];
+            $('#editASIN_id').remove();
+            $("#editASIN").append('<input type="hidden" name="ids" value="" id="editASIN_id">');
+            $('input[name="selectListing"]:checked').each(function () {
+                asins.push(parseInt($(this).val()))
+            });
+            if(asins == false){
+                alert('请选择listings！');
+            }else{
+                $("#editASIN").toggle();
+                var data = {
+                    'ids' : JSON.stringify(asins)
+                };
+                $('#btn-asin-add').val('Edit');
+                $.post('/admin/maxlead_site/get_asin_edits/',data,function (re) {
+                    if(re.code==1){
+                        $('textarea[name="newASIN"]').val(re.aid_str).attr('readonly','readonly');
+                        $('textarea[name="newSKU"]').val(re.sku_str);
+                        $('input[name="ids"]').val(data['ids']);
+                        if (re.data) {
+                            var rew = re.data['review_watcher']?1:0;
+                            var listw = re.data['listing_watcher']?1:0;
+                            var isuse = re.data['is_use']?1:0;
+                            $("input[name='ownership'][value='"+re.data['ownership']+"']").attr("checked",true);
+                            $("input[name='revWatcher'][value='"+rew+"']").attr("checked",true);
+                            $("input[name='listWatcher'][value='"+listw+"']").attr("checked",true);
+                            $("input[name='status'][value='"+isuse+"']").attr("checked",true);
+                            $('input[name="kwdSet1"]').val(re.data['keywords1']);
+                            $('input[name="kwdSet2"]').val(re.data['keywords2']);
+                            $('input[name="kwdSet3"]').val(re.data['keywords3']);
+                            $('input[name="cat1"]').val(re.data['cat1']);
+                            $('input[name="cat2"]').val(re.data['cat2']);
+                            $('input[name="cat3"]').val(re.data['cat3']);
+                        }
+                    }
+                },'json');
+
+            }
+
+        });
+
+        $('#status_on').on('click',function () {
+            var asins = [];
+
+            $('input[name="selectListing"]:checked').each(function () {
+                asins.push(parseInt($(this).val()))
+            });
+            if(asins == false){
+                alert('请选择listings！');
+                return false;
+            }
+            var data = {
+                'ids' : JSON.stringify(asins),
+                'status':1
+            };
+
+            $.post('/admin/maxlead_site/ajax_edit/',data,function (re) {
+                if(re.code==1){
+                    window.location.reload()
+                }
+            },'json');
+        })
+
+        $('#status_off').on('click',function () {
+            var asins = [];
+
+            $('input[name="selectListing"]:checked').each(function () {
+                asins.push(parseInt($(this).val()))
+            });
+            if(asins == false){
+                alert('请选择listings！');
+                return false;
+            }
+            var data = {
+                'ids' : JSON.stringify(asins),
+                'status':0
+            };
+
+            $.post('/admin/maxlead_site/ajax_edit/',data,function (re) {
+                if(re.code==1){
+                    window.location.reload()
+                }
+            },'json');
+        });
+
+    function span_click(data) {
+
+        $.post('/admin/maxlead_site/ajax_edit/',data,function (re) {
+
+        },'json');
+    }
+
+    $(".asinON, .asinOFF").click(function(){
+        var id = $(this).parent().parent('tr').children("td:first-child").children("input:first-child").val();
+                var asins = [];
+
+        asins.push(parseInt(id));
+        var data = {
+            'ids' : JSON.stringify(asins),
+        };
+        if ($(this).attr("class") == "asinON") {
+            data['status'] = 0;
+            span_click(data);
+        } else {
+            data['status'] = 1;
+            span_click(data);
+        }
+
+    }); //asin status
+
+    $(".rvON, .rvOFF").click(function(){
+        var id = $(this).parent().parent('tr').children("td:first-child").children("input:first-child").val();
+                var asins = [];
+
+        asins.push(parseInt(id));
+        var data = {
+            'ids' : JSON.stringify(asins),
+        };
+        if ($(this).attr("class") == "rvON"){
+            data['review_watcher'] = 0;
+            span_click(data);
+        } else {
+            data['review_watcher'] = 1;
+            span_click(data);
+        }
+
+    }); //review status
+
+    $(".listON, .listOFF").click(function(){
+        var id = $(this).parent().parent('tr').children("td:first-child").children("input:first-child").val();
+                var asins = [];
+
+        asins.push(parseInt(id));
+        var data = {
+            'ids' : JSON.stringify(asins)
+        };
+        if ($(this).attr("class") == "listON"){
+           data['listing_watcher'] = 0;
+            span_click(data);
+        } else {
+            data['listing_watcher'] = 1;
+            span_click(data);
+        }
+
+    }); //review status
+
+        $('#btn-export').on('click',function () {
+            var listings = [];
+
+            $('input[name="selectListing"]:checked').each(function () {
+                var tr = $(this).parent().parent('tr');
+                var status = tr.find('td').eq(9).children('span').attr('class');
+                var review_watcher = tr.find('td').eq(10).children('span').attr('class');
+                var listing_watcher = tr.find('td').eq(11).children('span').attr('class');
+                status = status == 'asinON' ? 'Normal':'Disable';
+                review_watcher = review_watcher == 'rvON' ? 'Normal':'Disable';
+                listing_watcher = listing_watcher == 'listON' ? 'Normal':'Disable';
+
+                var listing = {
+                    'image_names':tr.find('td').eq(1).children('img').attr('src'),
+                    'title':tr.find('td').eq(2).find('.listingTitle').text(),
+                    'asin':tr.find('td').eq(2).find('.listingASIN').text(),
+                    'sku':tr.find('td').eq(2).find('.listingSKU').text(),
+                    'brand':tr.find('td').eq(3).text(),
+                    'price':tr.find('td').eq(4).text(),
+                    'total_review':tr.find('td').eq(5).text(),
+                    'rvw_score':tr.find('td').eq(6).text(),
+                    'category_rank':tr.find('td').eq(7).text(),
+                    'buy_box':tr.find('td').eq(8).text(),
+                    'status':status,
+                    'review_watcher':review_watcher,
+                    'listing_watcher':listing_watcher,
+                    'last_check':tr.find('td').eq(12).children('span').text()
+                };
+                listings.push(listing);
+            });
+            if(listings == false){
+                alert('请选择listings！');
+                return false;
+            }
+
+            $('#export-data').val(JSON.stringify(listings))
+
+        });
+        $('#gotoPage').on('click',function () {
+            var param = "&listKwd={{ listKwd }}&searchCol={{ searchCol }}&owner=&buybox={{ buybox }}&status={{ status }}&revstatus={{ revstatus }}&liststatus={{ liststatus }}";
+            var page = $('input[name="page"]').val();
+            var limit = $('select[name="limit"]').val();
+            var viewRange = $('select[name="viewRange"]').val();
+            var url = '/admin/maxlead_site/listings/?page='+page+param+'&limit='+limit+'&viewRange='+viewRange;
+            window.location.href = url;
+            return false;
+        });
+
+        $('select[name="limit"]').on('change',function () {
+            var param = "&listKwd={{ listKwd }}&searchCol={{ searchCol }}&owner=&buybox={{ buybox }}&status={{ status }}&revstatus={{ revstatus }}&liststatus={{ liststatus }}";
+            var page = $('input[name="page"]').val();
+            var limit = $('select[name="limit"]').val();
+            var viewRange = $('select[name="viewRange"]').val();
+            var url = '/admin/maxlead_site/listings/?page='+page+param+'&limit='+limit+'&viewRange='+viewRange;
+            window.location.href = url;
+            return false;
+            });
+
+        $('#delASINButton').on('click',function () {
+            var asins = [];
+            $('input[name="selectListing"]:checked').each(function () {
+                asins.push(parseInt($(this).val()))
+            });
+            if (asins == false) {
+                alert('请选择listings！');
+            }else{
+                console.log(asins);
+                if (confirm('确认删除？')) {
+                    $.get('/admin/maxlead_site/del_asins',{'asins':JSON.stringify(asins)},function (re) {
+                        if(re.code == 1){
+                            alert(re.msg);
+                            window.location.reload();
+                        }else{
+                            alert(re.msg);
+                        }
+                    },'json');
+                }
+            }
+        });
+
+        $('#update_listing').on('click',function(){
+            $.get('/admin/maxlead_site/ajax_update_list',{},function (re) {
+                alert('更新已运行。。。');
+                if(re.code == 0){
+                    alert(re.msg);
+                }
+            },'json');
+        });
+        </script>
+    {% endblock %}
+

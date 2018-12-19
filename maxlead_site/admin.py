@@ -1,10 +1,10 @@
+# -*- coding: utf-8 -*-
 from django.http import HttpResponse
-from xlwt import *
+import xlsxwriter as xlsw
 from io import *
-import os,time
+import json,time
 from django.contrib import admin
-from maxlead_site.models import UserAsins,AsinReviews,Reviews
-from maxlead import settings
+from maxlead_site.models import UserAsins,AsinReviews,Reviews,UserProfile
 
 # Register your models here.
 
@@ -27,49 +27,61 @@ def get_excel_file(self, request, queryset):
     obj_items = getmodelfield(self)
 
     if queryset:
+        headings = []
         res = list(queryset.all().values())
-        # 创建工作薄
-        ws = Workbook(encoding='utf-8')
-        w = ws.add_sheet(u"数据报表第一页")
-        for i, val in enumerate(obj_items[0],0):
-            w.write(0, i, val)
 
-        # 写入数据
-        excel_row = 1
-        for obj in res:
-            for k, field in enumerate(obj_items[1],0):
+        file_name = '%s-%s.xlsx' % (self.model._meta.db_table, time.strftime('%Y-%m-%d-%H%M%S'))
+        # path_name = settings.DOWNLOAD_URL + '/' + file_name
+        # exist_file = os.path.exists(path_name)
+        # if exist_file:
+        #     os.remove(path_name)
+        # 创建工作薄
+        output = BytesIO()
+        workbook = xlsw.Workbook(output, {'in_memory': True})
+        worksheet1 = workbook.add_worksheet(u"Review-Datas")
+        bold = workbook.add_format({'bold': 1,'align':'center'})
+        align = workbook.add_format({'align':'center'})
+        for i, val in enumerate(obj_items[0],0):
+            if not val == 'Image Urls':
+                headings.append(val)
+        worksheet1.write_row('A1', headings, bold)
+
+        for c, obj in enumerate(res,2):
+            data = []
+            for k, field in enumerate(obj_items[1],2):
                 if field == 'review_date' or field == 'created':
                     field = str(obj[field].year)+'-'+str(obj[field].month)+'-'+str(obj[field].day)
                 else:
                     field = obj[field]
+                data.append(field)
+            worksheet1.write_row('A%s' % str(c), data, align)
+            if obj['image_names']:
+                imgs = obj['image_names'].split('||')
+                col_name = ord('L')
+                for img in imgs:
+                    if img:
+                        worksheet1.insert_image('%s%s' % (chr(col_name),str(c)), img)
+                        worksheet1.set_row(c-1,70)
+                        worksheet1.set_column('%s:%s' % (chr(col_name),chr(col_name+1)), 20)
+                    col_name += 1
+                        # if obj['name'] == 'Emory Daniels':
+            #     worksheet1.insert_image('L%s' % str(c), 'C:\\Users\\asus\\Pictures\\Camera Roll\\timg1.jpg')
 
-            # dada_review_date = str(obj['review_date'].year)+'-'+str(obj['review_date'].month)+'-'+str(obj['review_date'].day)
-            # dada_created = str(obj['created'].year)+'-'+str(obj['created'].month)+'-'+str(obj['created'].day)
-                w.write(excel_row, k, field)
-            excel_row += 1
-            # 检测文件是够存在
-        # 方框中代码是保存本地文件使用，如不需要请删除该代码
-        ###########################
-        file_name = '%s-%s.xls' % (self.model._meta.db_table, time.strftime('%Y-%m-%d-%H%M%S'))
-        path_name = settings.DOWNLOAD_URL+'/'+file_name
+        workbook.close()
 
-        exist_file = os.path.exists(path_name)
-        if exist_file:
-            os.remove(path_name)
-        ws.save(path_name)
-        ############################
-        sio = BytesIO()
-        ws.save(sio)
-        sio.seek(0)
-        response = HttpResponse(sio.getvalue(), content_type='application/vnd.ms-excel')
-        response['Content-Disposition'] = 'attachment; filename=%s' % file_name
-        response.write(sio.getvalue())
+        output.seek(0)
+
+        response = HttpResponse(output.read(),
+                                content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        response['Content-Disposition'] = "attachment; filename=%s" % file_name
+
         return response
+
 get_excel_file.short_description = "下载数据表"
 
 @admin.register(UserAsins)
 class UserAsinsAdmin(admin.ModelAdmin):
-    list_display=('id', 'user', 'aid', 'name')
+    list_display=('id', 'user', 'aid', 'review_watcher', 'listing_watcher', 'is_use')
 
     list_per_page = 15
 
@@ -84,9 +96,14 @@ class UserAsinsAdmin(admin.ModelAdmin):
     # 设置哪些字段可以点击进入编辑界面
     # list_display_links = ('id', 'text')
     # 筛选器
-    # list_filter = ('trouble', 'go_time', 'act_man__user_name', 'machine_room_id__machine_room_name')  # 过滤器
-    search_fields = ('aid', 'name')  # 搜索字段
+    list_filter = ('user','is_done')  # 过滤器
+    search_fields = ('aid','sku')  # 搜索字段
     # date_hierarchy = 'go_time'  # 详细时间分层筛选　
+
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ('id','state')
+    fields = ('user','state','group','role')
 
 @admin.register(Reviews)
 class ReviewsAdmin(admin.ModelAdmin):

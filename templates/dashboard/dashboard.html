@@ -1,0 +1,426 @@
+{% extends "layouts/page_base.html" %}
+    {% block container %}
+        <style>
+        .dashContent-scroll {
+            height: 231px;
+            overflow-y: scroll;
+        }
+         ::-webkit-scrollbar {display:none}
+        </style>
+            <main class="dashboard">
+                <div>
+                    <div class = "dashContent">
+                        <h3>Review Watcher</h3>
+                        <form name="revWatcher" method="get" action="/admin/maxlead_site/expload_dash_reviews/" class="dashForm">
+                            <input type="date" name="revBgn"  max="" min="2017-12-15" /> -
+                            <input type="date" name="revEnd" max="" min="2017-12-15" />
+                            <input type="hidden" name="viewRange" value="{{ viewRange }}"/>
+                            <input type="submit" value="Update" id="btn_reviews_search"/>
+                            <input type="submit" value="Export"/></form>
+                        <div class="dashContent dashContent-scroll" style="width: 100%">
+                            <table cellspacing=0 id="tb-reviews" class="tb-dash-content">
+                                {% for val in reviews %}
+                                <tr class="tr-to-listing" data-asin="{{ val.asin }}">
+                                    <td class="revWatDate">{{ val.review_date }}</td>
+                                    <td class="revWatSKU">{{ val.sku }}</td>
+                                    <td><span class="star{{ val.score }}"></span></td>
+                                    <td class="revWatTitle">{{ val.title }}</td>
+                                </tr>
+                                {% endfor %}
+                                {% if is_page %}
+                                <tr id="tr-more-review">
+                                    <td colspan="4"><input type="button" name="rvbtn" id="btn-review-more" value="more" data-page=""></td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </div>
+                    </div>
+                    <div class = "dashContent">
+                        <h3>Listing Watcher</h3>
+                        <form name="lstWatcher" method="get" action="/admin/maxlead_site/export_watcher/" class="dashForm">
+                            <input type="date" name="listBgn"  max="" min="2017-12-15" /> -
+                            <input type="date" name="listEnd"  max="" min="2017-12-15" />
+                            <input type="hidden" name="viewRange" value="{{ viewRange }}"/>
+                            <input type="submit" value="Update" id="btn_lstWatcher"/>
+                            <input type="submit" value="Export" id="btn_export_watcher" /></form>
+                        <div class="dashContent dashContent-scroll" style="width: 100%">
+                            <table cellspacing=0 id="tb_watcher" class="tb-dash-content">
+
+                            </table>
+                        </div>
+                    </div>
+                    
+                </div>
+                <div>
+                    <h3>Rising Star</h3>
+                    <hr>
+                    <div class = "dashContent">
+                        <h4>Ours</h4>
+                        <form name="ourRising" method="get" action="/admin/maxlead_site/export_rising/" class="dashForm">
+                            <input type="date" name="ourBgn"  max="传入当前日期" min="2017-12-15" value=""/> -
+                            <input type="date" name="ourEnd"  max="传入当前日期" min="2017-12-15"  value=""/>
+                            <input type="hidden" name="type"  value="Ours"/>
+                            <input type="submit" value="Update" class="rising_search" data-type="Ours"/>
+                            <input type="hidden" name="viewRange" value="{{ viewRange }}"/>
+                            <input type="submit" value="Export" /></form>
+                        <div class="dashContent dashContent-scroll" style="width: 100%">
+                            <table cellspacing=0 class="tb-dash-content">
+                                <tr><th>SKU</th><th>Reviews</th><th>Growth</th><th>Score</th><th>Score Change</th></tr>
+                                {% for val in ours_li %}
+                                <tr class="tr-to-listing" data-asin="{{ val.asin }}">
+                                    <td>{{ val.sku }}</td>
+                                    <td>{{ val.total_review }}</td>
+                                    <td>{{ val.total_review2 }}</td>
+                                    <td>{{ val.rvw_score }}</td>
+                                    <td>{{ val.rvw_score2 }}</td></tr>
+                                {% endfor %}
+                                {% if o_rising_page %}
+                                <tr class="tr-more-rising">
+                                    <td colspan="5"><input type="button" name="rvbtn" class="btn-rising-more" value="more" data-page=""></td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </div>
+                    </div>
+                    <div class = "dashContent">
+                        <h4>Others</h4>
+                        <form name="othRising" method="get" action="/admin/maxlead_site/export_rising/" class="dashForm">
+                            <input type="date" name="othBgn" max="传入当前日期" min="2017-12-15"  value=""/> -
+                            <input type="date" name="othEnd" max="传入当前日期" min="2017-12-15" value=""/>
+                            <input type="hidden" name="type"  value="Others"/>
+                            <input type="hidden" name="viewRange" value="{{ viewRange }}"/>
+                            <input type="Submit" value="Update" class="rising_search" data-type="Others" />
+                            <input type="submit" value="Export"/></form>
+                        <div class="dashContent dashContent-scroll" style="width: 100%">
+                            <table cellspacing=0 class="tb-dash-content">
+                                <tr><th>Asin</th><th>Reviews</th><th>Growth</th><th>Score</th><th>Score Change</th></tr>
+                                {% for val in others_li %}
+                                <tr class="tr-to-listing" data-asin="{{ val.asin }}">
+                                    <td>{{ val.asin }}</td>
+                                    <td>{{ val.total_review }}</td>
+                                    <td>{{ val.total_review2 }}</td>
+                                    <td>{{ val.rvw_score }}</td>
+                                    <td>{{ val.rvw_score2 }}</td></tr>
+                                {% endfor %}
+                                {% if th_rising_page %}
+                                <tr class="tr-more-rising">
+                                    <td colspan="5"><input type="button" name="rvbtn" class="btn-rising-more" value="more" data-page=""></td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class = "dashContent">
+                        <h3>Activity Radar</h3>
+                        <form name="atyRadar" method="get" action="/admin/maxlead_site/export_radar/" class="dashForm">
+                            <input type="date" name="actBgn" max="" min="2017-12-15" /> -
+                            <input type="date" name="actEnd" max="" min="2017-12-15" />
+                            <input type="hidden" name="viewRange" value="{{ viewRange }}"/>
+                            <input type="submit" value="Update" id="radar_search"/>
+                            <input type="submit" value="Export" /></form>
+                        <div class="dashContent dashContent-scroll" style="width: 100%">
+                            <table cellspacing=0 id="tb_radar" class="tb-dash-content">
+                                {% for val in activity_radar %}
+                                <tr class="tr-to-listing" data-asin="{{ val.asin }}">
+                                    <td>{{ val.created }}</td>
+                                    <td>{{ val.asin }}</td>
+                                    <td>{{ val.changed }}</td>
+                                    <td>{{ val.buy_box_res }}</td></tr>
+                                {% endfor %}
+                                {% if radar_page %}
+                                <tr id="tr-more-radar">
+                                    <td colspan="4"><input type="button" name="rvbtn" id="btn-radar-more" value="more" data-page=""></td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+    <script>
+        get_watcher(1,0);
+
+        function get_watcher(page,type) {
+            var listBgn = $('input[name="listBgn"]').val();
+            var listEnd = $('input[name="listEnd"]').val();
+            var viewRange = $('select[name="viewRange"]').val();
+            var page = page;
+            $.get('/admin/maxlead_site/ajax_watcher/',{'listBgn':listBgn,'listEnd':listEnd,'page':page,'viewRange':viewRange},
+                                                                                                        function (re) {
+                if(re.code == 1){
+                    var el = '';
+                    $.each(re.data.data,function (index,val) {
+                        el += '<tr class="tr-to-listing" data-asin="'+val['asin']+'">\n' +
+                            '<td>'+val['created']+'</td>\n' +
+                            '<td>'+val['sku']+'</td>\n' +
+                            '<td>Price '+val['price']+'</td>\n' +
+                            '<td>'+val['seller']+'</td>\n' +
+                            '<td>'+val['fba']+'</td></tr>';
+                    });
+                    if (type){
+                         $('#tb_watcher').html(el);
+                    }else{
+                        $('#tb_watcher').append(el);
+                    }
+                    $('#tr-more-watcher').remove();
+                    if(re.data.li_watcher_page){
+                        $('#tb_watcher').append('<tr id="tr-more-watcher">' +
+                            '<td colspan="5"><input type="button" name="rvbtn" id="btn-watcher-more" value="more" data-page="'+page+'"></td>\n' +
+                            '</tr>');
+                    }
+                }else{
+                    alert(re.msg);
+                }
+                return false;
+            },'json');
+            return false;
+        }
+    
+        $('#btn_reviews_search').on('click',function () {
+            var data = {
+                'revBgn' : $('input[name="revBgn"]').val(),
+                'revEnd' : $('input[name="revEnd"]').val(),
+                'viewRange' : $('select[name="viewRange"]').val()
+            };
+            $.get('/admin/maxlead_site/ajax_reviews/',data,function (re) {
+                if(re.code==1){
+                    var el = '';
+                    $.each(re.data.data,function (index,val) {
+                        el += '<tr class="tr-to-listing" data-asin="'+val['asin']+'">' +
+                            "<td class=\"revWatDate\">"+val['review_date']+"</td>" +
+                            " <td class=\"revWatSKU\">"+val['sku']+"</td>" +
+                            "<td><span class=\"star"+val['score']+"\"></span></td>" +
+                            "<td class=\"revWatTitle\">"+val['title']+"</td>" +
+                            "</tr>";
+                    });
+                    $('#tb-reviews').html(el);
+                    if(re.data.is_page){
+                        $('#tb-reviews').append('<tr id="tr-more-review">' +
+                            '<td colspan="4"><input type="button" name="rvbtn" id="btn-review-more" value="more" data-page=""></td>\n' +
+                            '</tr>');
+                    }
+                    $('#btn-review-more').data('page',re.data.review_page);
+                }else {
+                    alert(re.msg)
+                }
+            },'json');
+            return false;
+        });
+
+        $('#tb-reviews').on('click','#btn-review-more',function () {
+            var page = $(this).data('page')?$(this).data('page'):2;
+            var data = {
+                'revBgn' : $('input[name="revBgn"]').val(),
+                'revEnd' : $('input[name="revEnd"]').val(),
+                'viewRange' : $('select[name="viewRange"]').val(),
+                'page' : page
+            };
+            $.get('/admin/maxlead_site/ajax_reviews/',data,function (re) {
+                if(re.code==1){
+                    var el = '';
+                    $.each(re.data.data,function (index,val) {
+                        el += '<tr class="tr-to-listing" data-asin="'+val['asin']+'">' +
+                            "<td class=\"revWatDate\">"+val['review_date']+"</td>" +
+                            " <td class=\"revWatSKU\">"+val['sku']+"</td>" +
+                            "<td><span class=\"star"+val['score']+"\"></span></td>" +
+                            "<td class=\"revWatTitle\">"+val['title']+"</td>" +
+                            "</tr>";
+                    });
+                    $('#tr-more-review').before(el);
+                    if(!re.data.is_page){
+                        $('#tr-more-review').remove();
+                        return false;
+                    }
+                    $('#btn-review-more').data('page',parseInt(page)+1);
+                }else {
+                    alert(re.msg)
+                }
+            },'json');
+            return false;
+        });
+        $('.tb-dash-content').on('click', '.tr-to-listing',function () {
+            var asin = $(this).data('asin');
+            window.location.href = '/admin/maxlead_site/listing_item/?asin='+asin;
+        });
+
+        $('.rising_search').on('click',function () {
+            var type = $(this).data('type');
+            var tb = $(this).parent().next().find('table');
+            var viewRange = $('select[name="viewRange"]').val();
+            if(type == 'Ours'){
+                var data = {
+                    'ourBgn' : $('input[name="ourBgn"]').val(),
+                    'ourEnd' : $('input[name="ourEnd"]').val(),
+                    'type' : 'Ours',
+                    'viewRange' : viewRange
+                };
+            }else {
+                var data = {
+                    'othBgn' : $('input[name="othBgn"]').val(),
+                    'othEnd' : $('input[name="othEnd"]').val(),
+                    'type' : 'Others',
+                    'viewRange' : viewRange
+                };
+            }
+
+            $.get('/admin/maxlead_site/ajax_rising/',data,function (re) {
+                if(re.code==1){
+                    if(re.data['type'] == 'Ours'){
+                        var el = '<tr><th>SKU</th><th>Reviews</th><th>Growth</th><th>Score</th><th>Score Change</th></tr>';
+                        $.each(re.data.data,function (index,val) {
+                            el += '<tr class="tr-to-listing" data-asin="'+val['asin']+'">\n' +
+                                '<td>'+val['sku']+'</td>\n' +
+                                '<td>'+val['total_review']+'</td>\n' +
+                                '<td>'+val['total_review2']+'</td>\n' +
+                                '<td>'+val['rvw_score']+'</td>\n' +
+                                '<td>'+val['rvw_score2']+'</td></tr>';
+                        });
+                    }else{
+                        var el = '<tr><th>Asin</th><th>Reviews</th><th>Growth</th><th>Score</th><th>Score Change</th></tr>';
+                        $.each(re.data.data,function (index,val) {
+                            el += '<tr class="tr-to-listing" data-asin="'+val['asin']+'">\n' +
+                                '<td>'+val['asin']+'</td>\n' +
+                                '<td>'+val['total_review']+'</td>\n' +
+                                '<td>'+val['total_review2']+'</td>\n' +
+                                '<td>'+val['rvw_score']+'</td>\n' +
+                                '<td>'+val['rvw_score2']+'</td></tr>';
+                        });
+                    }
+
+                    tb.html(el);
+                    if(re.data.is_page){
+                        tb.append('<tr class="tr-more-rising">' +
+                            '<td colspan="5"><input type="button" name="rvbtn" class="btn-rising-more" value="more" data-page=""></td>\n' +
+                            '</tr>');
+                    }
+                    $('.btn-rising-more').data('page',re.data.page);
+                }else {
+                    alert(re.msg)
+                }
+            },'json');
+            return false;
+        });
+
+        $('.tb-dash-content').on('click', '.btn-rising-more', function () {
+            var more = $(this);
+            var dash_el = $(this).parents('.dashContent');
+            var input1 = dash_el.find('input').eq(0);
+            var input2 = dash_el.find('input').eq(1);
+            var name1 = input1.attr('name');
+            var name2 = input2.attr('name');
+            var page = $(this).data('page')?$(this).data('page'):1;
+            var type = name1=='othBgn'?'Others':'Ours';
+            var data = {
+                'page':parseInt(page)+1,
+                'viewRange' : $('select[name="viewRange"]').val(),
+                'type':type
+            };
+            data[name1] = input1.val();
+            data[name2] = input2.val();
+            $.get('/admin/maxlead_site/ajax_rising/',data,function (re) {
+                if(re.code==1){
+                    var el = '';
+                    if(re.data['type'] == 'Ours'){
+                        $.each(re.data.data,function (index,val) {
+                            el += '<tr class="tr-to-listing" data-asin="'+val['asin']+'">\n' +
+                                '<td>'+val['sku']+'</td>\n' +
+                                '<td>'+val['total_review']+'</td>\n' +
+                                '<td>'+val['total_review2']+'</td>\n' +
+                                '<td>'+val['rvw_score']+'</td>\n' +
+                                '<td>'+val['rvw_score2']+'</td></tr>';
+                        });
+                    }else{
+                        $.each(re.data.data,function (index,val) {
+                            el += '<tr class="tr-to-listing" data-asin="'+val['asin']+'">\n' +
+                                '<td>'+val['asin']+'</td>\n' +
+                                '<td>'+val['total_review']+'</td>\n' +
+                                '<td>'+val['total_review2']+'</td>\n' +
+                                '<td>'+val['rvw_score']+'</td>\n' +
+                                '<td>'+val['rvw_score2']+'</td></tr>';
+                        });
+                    }
+                    more.parent().parent().before(el);
+                    if(!re.data.is_page){
+                        dash_el.find('.tr-more-rising').remove();
+                    }
+                    $('.btn-rising-more').data('page',re.data.page);
+                }else {
+                    alert(re.msg)
+                }
+            },'json');
+        });
+
+        $('#radar_search').on('click',function () {
+            var data = {
+                'actBgn':$('input[name="actBgn"]').val(),
+                'viewRange' : $('select[name="viewRange"]').val(),
+                'actEnd':$('input[name="actEnd"]').val()
+            };
+            $.get('/admin/maxlead_site/ajax_radar/',data,function (re) {
+                if(re.code == 1){
+                    var el = '';
+                    $.each(re.data.data,function (index,val) {
+                        el += "<tr class=\"tr-to-listing\" data-asin="+val['asin']+">\n" +
+                            "<td>"+val['created']+"</td>\n" +
+                            "<td>"+val['asin']+"</td>\n" +
+                            "<td>"+val['changed']+"</td>\n" +
+                            "<td>"+val['buy_box_res']+"</td></tr>";
+                    });
+                    $('#tb_radar').html(el);
+                    if(re.data.is_page){
+                        $('#tb_radar').append('<tr id="tr-more-radar">' +
+                            '<td colspan="4"><input type="button" name="rvbtn" id="btn-radar-more" value="more" data-page=""></td>\n' +
+                            '</tr>');
+                    }
+                    console.log(re.data);
+                }else{
+                    alert(re.msg);
+                }
+            },'json');
+            return false;
+        });
+
+        $('#tb_radar').on('click','#btn-radar-more',function () {
+            var page = $(this).data('page')?$(this).data('page'):1;
+            var data = {
+                'actBgn':$('input[name="actBgn"]').val(),
+                'actEnd':$('input[name="actEnd"]').val(),
+                'viewRange' : $('select[name="viewRange"]').val(),
+                'page':parseInt(page)+1
+            };
+
+            $.get('/admin/maxlead_site/ajax_radar/',data,function (re) {
+                if(re.code == 1){
+                    var el = '';
+                    $.each(re.data.data,function (index,val) {
+                        el += "<tr class=\"tr-to-listing\" data-asin="+val['asin']+">\n" +
+                            "<td>"+val['created']+"</td>\n" +
+                            "<td>"+val['asin']+"</td>\n" +
+                            "<td>"+val['changed']+"</td>\n" +
+                            "<td>"+val['buy_box_res']+"</td></tr>";
+                    });
+                    $('#tr-more-radar').before(el);
+                    $('#btn-radar-more').data('page',parseInt(page)+1)
+                    if(!re.data.is_page){
+                        $('#btn-radar-more').remove();
+                    }
+                }else{
+                    alert(re.msg);
+                }
+            },'json');
+        });
+        $('#btn_lstWatcher').on('click',function () {
+            get_watcher(1,1);
+            return false;
+        });
+        $('#tb_watcher').on('click', '#btn-watcher-more', function () {
+            var page = $(this).data('page');
+            get_watcher(parseInt(page)+1);
+        });
+    </script>
+            
+{% endblock %}
+

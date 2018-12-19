@@ -1,0 +1,637 @@
+{% extends "layouts/page_base.html" %}
+    {% block container %}
+        <script src="../../../static/js/plotly-latest.min.js?pid={{ time_pid }}"></script>
+            <main class="listingDetail">
+                <section class="detailInfo">
+                    <div class="detailGallery">
+                        <img src="{{ res.image_names }}" id="detailBig" />
+                        <p class="galleryTime">{{ res.image_date }}</p>
+{#                        <div class="detailSmall">#}
+{#                            <img src="" />#}
+{#                            <img src="" />#}
+{#                            <img src="" />#}
+{#                        </div>#}
+                    </div>
+                    <div class="productInfo">
+                        <a href="https://www.amazon.com/dp/{{ res.asin }}" target="_blank">
+                            <h2>{{ res.title }}</h2>
+                        </a>
+                        <table class="productInfoTable">
+                            <tr>
+                                <td style="display: none;"><input type="hidden" name="id" value="{{ res.user_asin.id }}"></td>
+                                <td>Stauts: <span class="{% if res.user_asin.is_use == 1 %}asinON{% else %}asinOFF{% endif %}"></span> </td>
+                                <td>Review Watcher: <span class="{% if res.user_asin.review_watcher == 1 %}rvON{% else %}rvOFF{% endif %}"></span></td>
+                                <td>Listing Watcher: <span class="{% if res.user_asin.listing_watcher == 1 %}listON{% else %}listOFF{% endif %}"></span></td>
+                                <td><button type="button" id="editASINButton">Edit</button></td></tr>
+                            <tr><td>ASIN: {{ res.asin }}</td>
+                                <td>Brand: {{ res.brand }}</td>
+                                <td>SKU: {{ res.user_asin.sku }}</td>
+                                <td>Inventory: unknown</td></tr>
+                            <tr><td>New Item Offers: <span id="item_offers"></span></td>
+                                <td><a href="https://www.amazon.com/product-reviews/{{ res.asin }}/ref=cm_cr_dp_d_show_all_top?ie=UTF8&reviewerType=all_reviews" target="_blank">Reviews: {{ res.total_review }}</a></td>
+                                <td><span class="star{{ res.rvw_score }}"></span></td>
+                                <td><form action="/admin/maxlead_site/export_qa/" method="get" name="export_qa">
+                                    <a href="https://www.amazon.com/ask/questions/asin/{{ res.asin }}/" target="_blank">QA: <span id="question_answer"></span></a>
+
+                                        <input type="hidden" name="qa_asin" value="{{ res.asin }}">
+                                    <button type="submit" id="export-qa">Export</button>
+                                    <button type="button" class="spider_update" data-type="qa" data-aid="{{ res.asin }}">Update</button>
+                                </form></td></tr>
+                        </table>
+                        <h4>Golden Buy Box Winner</h4>
+                        <hr>
+                        <table class="productGBBW">
+                            <tr><td>Price: {{ res.price }}</td>
+                                <td><a href="{{ res.buy_box_link }}" target="_blank">Seller: {{ res.buy_box_res }}</a></td>
+                                <td>{{ res.is_FBA }}</td>
+                                <td>{{ res.prime }}</td>
+                                <td>{{ res.shipping }}</td></tr>
+                        </table>
+                        <h4>BSR</h4>
+                        <hr>
+                        {% for val in res.category_rank %}
+                        <p>{{ val }}</p>
+                        {% endfor %}
+                        <p class="timestamp"><span>Add: {{ res.created }}</span><span>Last updated: {{ res.user_asin.update_time }}</span><span>Last view: {{ res.user_asin.last_check }}</span></p>
+                    </div>
+                </section>
+                <section class="detailWatcher">
+                    <h3>Listing Watcher</h3>
+                        <button type="button" class="spider_update" data-type="watcher" data-aid="{{ res.asin }}">Update</button><br>
+                    <div class="detailWatcherList">
+                        <table id="tb_li_wathcer"><!--默认只显示5条-->
+
+                        </table>
+                        <button type="button" class="moreButton" id="li_watcher_more" data-page="">More</button>
+                        <div >
+                            <img src ="" style="display:none" id="screenshot" />
+                        </div>
+                    </div>
+                </section>
+                <section class="detailChart">
+                    <h3>Time Shuttle</h3>
+                    <form name="timeShuttle" method="get" action="/admin/maxlead_site/export_shuttle/">
+                        Data1: <select name="tsData1">
+                        <option selected value="price">Price</option>
+                        <option value="bsr">BSR</option>
+                        <option value="reviews">Reviews</option>
+                        <option value="score">Score</option>
+                        <option value="qa">QA</option>
+                    </select>
+                        Data2: <select name="tsData2">
+                        <option value="price">Price</option>
+                        <option value="bsr">BSR</option>
+                        <option value="reviews" selected>Reviews</option>
+                        <option value="score">Score</option>
+                        <option value="qa">QA</option>
+                    </select>
+                        <input type="date" name="tsStartDate" max="" min="2017-12-15" /> -
+                        <input type="date" name="tsEndDate" max="" min="2017-12-15" />
+                        <input type="hidden" name="shuttle_asin" value="{{ res.asin }}"/>
+                        <input  class="rvInfoButton" type="button" value="Update" id="btn-shuttle-update"/>
+                        <button type="submit"  class="rvInfoButton">Export</button>
+                    </form>
+                    <div id="time_shuttle" style="width:95%;height:450px;"></div>
+                </section>
+                <section class="detailRanking">
+                    <h3>Keywords Ranking</h3>
+                    <form name="kwdRank" method="get" action="/admin/maxlead_site/export_k_rank/">
+                        Category: <select name="kwdCat">
+                        <option value="">All</option>
+                        {% for val in catgorys %}
+                        <option value="{{ val }}">{{ val }}</option>
+                        {% endfor %}
+                    </select>
+                        <input type="date" name="krStartDate" max="" min="2017-12-15" /> -
+                        <input type="date" name="krEndDate" max="" min="2017-12-15" />
+                        <input type="hidden" name="asin" value="{{ res.asin }}" />
+                        <input type="submit"  class="rvInfoButton" id="btn_search_rank" value="Search" />
+                        <button type="submit"  class="rvInfoButton" id="btn_export_rank">Export</button>
+                        <button type="button" class="spider_update" data-type="catrank" data-aid="{{ res.asin }}">Update</button>
+                    </form>
+                    <div id="krVisual" style="width:95%;height:450px;">
+                    </div>
+                </section>
+                <section class="detailReview">
+                    <h3>Reviews</h3>
+                    <div class="rvKeywords">
+                        <h4>Keywords</h4>
+                        <ul id="ul_words">
+                            {% for v in asinreview %}
+                            <li><a title="{{ v.count }}" class="a_review_keywords" data-words="{{ v.words }}" data-asin="{{ res.asin }}" style="cursor:pointer">{{ v.words }} {{ v.count }}</a></li>
+                            {% endfor %}
+                            {% for v in negative_keywords %}
+                            <li><a title="{{ v.count }}" class="a_review_keywords" data-words="{{ v.words }}" data-asin="{{ res.asin }}" style="cursor:pointer">{{ v.words }} {{ v.count }}</a></li>
+                            {% endfor %}
+
+                        </ul>
+                    </div>
+                    <div class="rvInfo">
+                        <form name="rvFilter" method="get" action = "/admin/maxlead_site/export_reviews/">
+                            <select name="rvSort">
+                                <option selected value="newest">Newest First</option>
+                                <option value="oldest">Oldest First</option>
+                                <option value="top">Top Rated</option></select>
+                            <select name="is_vp">
+                                <option value="">All Reviews</option>
+                                <option value="1" selected>VP Only</option></select>
+                            <select name="score">
+                                <option value="">All</option>
+                                <option value="1">1 Star</option>
+                                <option value="2">2 Star</option>
+                                <option value="3">3 Star</option>
+                                <option value="4">4 Star</option>
+                                <option value="5">5Star</option>
+                                <option value="positive">All Positive</option>
+                                <option value="critical">All Critical</option></select><br>
+                            <input type="search" name="rvKwd" />
+                            <input type="date" name="start_date"/> -
+                            <input type="date" name="end_date" />
+                            <input type="button" value="Search" class="rvInfoButton" id="btn-review-search" data-asin="{{ res.asin }}"/>
+                            <input type="hidden" name="review_asin" value="{{ res.asin }}">
+                            <input type="hidden" name="words" value="">
+                            <button class="rvInfoButton" type="submit">Export</button>
+                            <button type="button" class="spider_update" data-type="review" data-aid="{{ res.asin }}">Update</button>
+                        </form>
+                        <table id="table-review-list"><!--默认只显示3条-->
+
+                        </table>
+                    </div>
+                </section>
+                <section class="detailRadar">
+                    <h3>Activity Radar</h3>
+                    <div class="detailAct">
+                        <table id="tb_detail_act"><!--默认只显示3条-->
+
+                        </table>
+                        <div id="actOut" style="display:none;">
+                            <div class="actIn">
+                            <div id="actPrevious"></div>
+                            <div id="actNew"></div>
+                            <button class="moreButton">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <div id="editASIN"  style="display:none;">
+                    <h3>Basic Info</h3>
+                    <form name="editASIN" method="post" action="">
+                        <div class="basicInfo">*ASIN<br><textarea readonly="readonly" name="newASIN" rows=1 cols=18 title="You cannot edit ASIN.">{{ res.asin }}</textarea></div>
+                        <div class="basicInfo">SKU<br><textarea name="newSKU" rows="1" cols="18" title="only one SKU per ASIN">{{ res.user_asin.sku }}</textarea></div>
+                        <div class="basicInfo">
+                            *Ownership: <input type="radio" name="ownership" value="Ours" {% if res.user_asin.ownership == 'Ours' %}checked{% endif %}/>Ours
+                            <input type="radio" name="ownership" value="Others" {% if res.user_asin.ownership == 'Others' %}checked{% endif %}/>Others<br />
+                            *Status: <input type="radio" name="status" value="1" {% if res.user_asin.is_use == 1 %}checked{% endif %}/>ON  <input type="radio" name="status" value="0" {% if res.user_asin.is_use == 0 %}checked{% endif %} />OFF<br />
+                            *Review Watcher: <input type="radio" name="revWatcher" value="1" {% if res.user_asin.review_watcher == 1 %}checked{% endif %}/>ON
+                            <input type="radio" name="revWatcher" value="0" {% if res.user_asin.review_watcher == 0 %}checked{% endif %} />OFF<br />
+                            *Listing Watcher: <input type="radio" name="listWatcher" value="1" {% if res.user_asin.listing_watcher == 1 %}checked{% endif %}/>ON
+                            <input type="radio" name="listWatcher" value="0" {% if res.user_asin.listing_watcher == 0 %}checked{% endif %}/>OFF
+                        </div>
+                        <div class="kwdTracking">
+                            <h3>Keywords Tracking</h3>
+                            <div style="float: left;">
+                                Keyword Set 1:
+                                <input type="text" name="kwdSet1" title="3 keywords/set max. separated by comma" value="{{ res.user_asin.keywords1 }}"/><br>
+                                Keyword Set 2:
+                                <input type="text" name="kwdSet2" title="3 keywords/set max. separated by comma" value="{{ res.user_asin.keywords2 }}"/><br>
+                                Keyword Set 3:
+                                <input type="text" name="kwdSet3" title="3 keywords/set max. separated by comma" value="{{ res.user_asin.keywords3 }}"/><br>
+                            </div>
+                            <div style="float: right;">
+                                Category Node: <input type="number" title="category node ID, number only" name="cat1" value="{{ res.user_asin.cat1 }}"/><br />
+                                Category Node: <input type="number" title="category node ID, number only" name="cat2" value="{{ res.user_asin.cat2 }}"/><br />
+                                Category Node: <input type="number" title="category node ID, number only" name="cat3" value="{{ res.user_asin.cat3 }}"/><br />
+                            </div>
+                            <input type="hidden" name="asin_id" value="{{ res.user_asin.id }}">
+                            <div style="clear: both;"></div>
+                        </div>
+                        <div class="listActionButton"><input type="button" value="Edit" id="btn-asin-add" /><input type="button" value="Cancel" id="editASINCancel"/></div>
+                    </form>
+                </div>
+                <a class="goBack" href="" onclick="window.history.go(-1); return false;">&lt;&lt;&lt;Go Back</a>
+            </main>
+        <script>
+            $("#editASINButton").click(function(){
+                $("#editASIN").toggle();
+            });
+
+            shuttle_chart();
+
+            get_rank();
+
+            get_review('{{ asin }}');
+
+            get_watchers(1, '{{ asin }}');
+
+            get_radar('{{ asin }}', 1);
+
+            function get_radar(asin,page) {
+                $.get('/admin/maxlead_site/ajax_get_radar/',{'asin':asin,'page':parseInt(page)},function (re) {
+                    if(re.code == 1){
+                        if (re.data.data){
+                            el = '';
+                            $.each(re.data.data,function(index,value){
+                                el += '<tr>\n' +
+                                '<td>'+value['created']+'</td>\n' +
+                                '<td>'+value['name']+'</td><td>'+value['text1']+'</td>\n' +
+                                '<td>'+value['text2']+'</td>\n' +
+                                '<td><span class="actMore" data-text1="'+value['text1']+'" data-text2="'+value['text2']+'">Show More</span></td></tr>\n' +
+                                '<tr>\n';
+                            });
+                            $('#tb_detail_act').append(el);
+                            $('#act_more').data('page', parseInt(page)+1);
+                        }
+
+                        if(!re.data.is_page){
+                            $('#act_more').remove();
+                            return false;
+                        }
+
+                    }
+                },'json');
+            }
+
+            function get_watchers(page, asin) {
+                $.get('/admin/maxlead_site/ajax_get_watcher/',{'page':page,'asin':asin},function (re) {
+                    if(re.code == 1){
+                        var el = '';
+                        $.each(re.data.data,function(index,value) {
+                            el += '<tr><td>'+value['created']+'</td>\n' +
+                                '<td><a href="'+value['seller_link']+'" target="_blank">Seller: '+value['seller']+'</a></td>\n' +
+                                '<td>Price: '+value['price']+'</td>\n' +
+                                '<td>'+value['fba']+'</td>\n' +
+                                '<td>'+value['prime']+'</td>\n'+
+                                '<td>'+value['shipping']+'</td>\n'+
+                                '<td>'+value['winner']+'</td>\n'+
+                                '<td><a href="'+value['images']+'" target="_blank">Screenshot</a></td></tr>';
+                        });
+                        $('#tb_li_wathcer').append(el);
+                        $('#li_watcher_more').data('page',page+1);
+                        if(!re.data.li_watcher_page){
+                            $('#li_watcher_more').remove();
+                        }
+                    }else{
+                        var str = "<p>No one is listing against this ASIN.</p>";
+                        $('.detailWatcherList').html(str);
+                    }
+                },'json')
+            }
+
+
+            $.get('/admin/maxlead_site/item_offers/',{'asin':'{{ asin }}'},function (re) {
+                if(re.code == 1){
+                    $('#item_offers').html(re.item_offer);
+                }
+            },'json');
+
+            $.get('/admin/maxlead_site/question_answer/',{'asin':'{{ asin }}'},function (re) {
+                if(re.code == 1){
+                    $('#question_answer').html(re.question_answer);
+                }
+            },'json');
+
+            function get_review(asin) {
+                $('input[name="words"]').val('');
+                var data = {
+                    'asin': asin,
+                    'is_vp':$('select[name="is_vp"]').val(),
+                    'score':$('select[name="score"]').val(),
+                    'rvKwd':$('input[name="rvKwd"]').val(),
+                    'start_date':$('input[name="start_date"]').val(),
+                    'end_date':$('input[name="end_date"]').val(),
+                    'rvSort':$('select[name="rvSort"]').val()
+                };
+                $.get('/admin/maxlead_site/review_search/',data,function (re) {
+                    if(re.code == 1){
+                        var el = '';
+                        var el_k = '';
+                        var el_k1 = '';
+                        $.each(re.data.data,function(index,value){
+                          el += '<tr>'+
+                              '<td><span class="star'+value['score']+'"></span>'+
+                              value['is_vp']+'</td>' +
+                              '<td>'+value['name']+'<!--reviewer名字--><br />'+value['review_date']+'<!--review日期--></td>'+
+                              '<td class="rvInfoRV">'+value['content']+'</td>' +
+                              '</tr>';
+                        });
+                        if(re.data.positive_words.length > 0){
+                            $.each(re.data.positive_words,function(index,value){
+                              el_k += '<li><a title="'+value['count']+'" class="a_review_keywords" data-words="'+value['words']+'" data-asin="{{ res.asin }}" style="cursor:pointer">'+value['words']+' '+value['count']+'</a></li>';
+                            });
+                            $('#ul_words').html(el_k);
+                        }
+
+                        if(re.data.negative_keywords.length > 0){
+                            $.each(re.data.negative_keywords,function(index,value){
+                              el_k1 += '<li><a title="'+value['count']+'" class="a_review_keywords" data-words="'+value['words']+'" data-asin="{{ res.asin }}" style="cursor:pointer">'+value['words']+' '+value['count']+'</a></li>';
+                            });
+                            $('#ul_words').html(el_k1);
+                        }
+                        $('#table-review-list').html(el);
+                        if (re.data.is_page && $('#btn-review-more').length <= 0){
+                            $('.rvInfo').append('<button type="button" class="moreButton" id="btn-review-more" data-page="'+re.data.review_page+'">More</button>');
+                        }
+                    }
+                },'json');
+                return false;
+            }
+
+            $('#btn-review-search').on('click',function () {
+                var asin = $(this).data('asin');
+                get_review(asin);
+            });
+
+            $('.rvInfo').on('click', '#btn-review-more', function () {
+                var page = parseInt($(this).data('page'))+1;
+                var data = {
+                    'asin': $('#btn-review-search').data('asin'),
+                    'review_page': page,
+                    'is_vp':$('select[name="is_vp"]').val(),
+                    'score':$('select[name="score"]').val(),
+                    'rvSort':$('select[name="rvSort"]').val(),
+                    'rvKwd':$('input[name="rvKwd"]').val(),
+                    'start_date':$('input[name="start_date"]').val(),
+                    'end_date':$('input[name="end_date"]').val(),
+                    'words':$('input[name="words"]').val()
+                };
+                $.get('/admin/maxlead_site/review_search/',data,function (re) {
+                    if(re.code == 1){
+                        var el = '';
+                        $.each(re.data.data,function(index,value){
+                            if (value){
+                                el += '<tr>'+
+                              '<td><span class="star'+value['score']+'"></span>'+
+                              value['is_vp']+'</td>' +
+                              '<td>'+value['name']+'<!--reviewer名字--><br />'+value['review_date']+'<!--review日期--></td>'+
+                              '<td class="rvInfoRV">'+value['content']+'</td>' +
+                              '</tr>';
+                            }
+                        });
+                        $('#table-review-list').append(el);
+                        $('#btn-review-more').data('page', page);
+
+                        if(!re.data.is_page){
+                            $('#btn-review-more').remove();
+                            return false;
+                        }
+                    }
+                },'json');
+                return false;
+            });
+
+            function span_click(data) {
+
+                $.post('/admin/maxlead_site/ajax_edit/',data,function (re) {
+
+                },'json');
+            }
+
+            $(".asinON, .asinOFF").click(function(){
+                var id = $(this).parent().parent('tr').children("td:first-child").children("input:first-child").val();
+                        var asins = [];
+
+                asins.push(parseInt(id));
+                var data = {
+                    'ids' : JSON.stringify(asins),
+                };
+                if ($(this).attr("class") == "asinON") {
+                    data['status'] = 0;
+                    span_click(data);
+                } else {
+                    data['status'] = 1;
+                    span_click(data);
+                }
+
+            }); //asin status
+
+            $(".rvON, .rvOFF").click(function(){
+                var id = $(this).parent().parent('tr').children("td:first-child").children("input:first-child").val();
+                        var asins = [];
+
+                asins.push(parseInt(id));
+                var data = {
+                    'ids' : JSON.stringify(asins),
+                };
+                if ($(this).attr("class") == "rvON"){
+                    data['review_watcher'] = 0;
+                    span_click(data);
+                } else {
+                    data['review_watcher'] = 1;
+                    span_click(data);
+                }
+
+            }); //review status
+
+            $(".listON, .listOFF").click(function(){
+                var id = $(this).parent().parent('tr').children("td:first-child").children("input:first-child").val();
+                        var asins = [];
+
+                asins.push(parseInt(id));
+                var data = {
+                    'ids' : JSON.stringify(asins),
+                };
+                if ($(this).attr("class") == "listON"){
+                   data['listing_watcher'] = 0;
+                    span_click(data);
+                } else {
+                    data['listing_watcher'] = 1;
+                    span_click(data);
+                }
+
+            }); //review status
+
+            $("#btn-asin-add").on('click',function () {
+                var data = {
+                    'ids':JSON.stringify([parseInt($('input[name="asin_id"]').val())]),
+                    'newASIN':$("textarea[name='newASIN']").val(),
+                    'newSKU':$("textarea[name='newSKU']").val(),
+                    'ownership':$("input[name='ownership']:checked").val(),
+                    'status':$("input[name='status']:checked").val(),
+                    'revWatcher':$("input[name='revWatcher']:checked").val(),
+                    'listWatcher':$("input[name='listWatcher']:checked").val(),
+                    'kwdSet1':$("input[name='kwdSet1']").val(),
+                    'kwdSet2':$("input[name='kwdSet2']").val(),
+                    'kwdSet3':$("input[name='kwdSet3']").val(),
+                    'cat1':$("input[name='cat1']").val(),
+                    'cat2':$("input[name='cat2']").val(),
+                    'cat3':$("input[name='cat3']").val()
+                };
+                $.post('/admin/maxlead_site/add_asin/',data,function (re) {
+                    if(re.code==1){
+                        alert(re.msg);
+                        $('#editASIN').attr('style','display:none;');
+                        window.location.reload();
+                    }
+                },'json')
+            });
+            
+            function shuttle_chart() {
+                var data = {
+                    'asin':$('input[name="review_asin"]').val(),
+                    'tsData1':$('select[name="tsData1"]').val(),
+                    'tsData2':$('select[name="tsData2"]').val(),
+                    'tsStartDate':$('input[name="tsStartDate"]').val(),
+                    'tsEndDate':$('input[name="tsEndDate"]').val()
+                };
+                $.get('/admin/maxlead_site/shuttle_chart/',data,function (re) {
+                    if(re.code == 1){
+                        var line1 = {
+                          x: re.data['line_x1'],
+                          y: re.data['line_y1'],
+                          type: 'scatter',
+                          name:re.data['name1'],
+                          yaxis: 'y1'
+                        };
+
+                        var line2 = {
+                          x: re.data['line_x2'],
+                          y: re.data['line_y2'],
+                          type: 'scatter',
+                          name:re.data['name2'],
+                          yaxis: 'y2'
+                        };
+
+                        var layout = {
+                           yaxis:{
+                               title: "y-"+re.data['name1']
+                           },
+                           yaxis2:{
+                               title: "y-"+re.data['name2'],
+                               side: 'right',
+                               overlaying: 'y1'
+                           },
+                           xaxis:{
+                                showgrid: false,                  // remove the x-axis grid lines
+                                tickformat: "%m-%d"              // customize the date format to "month, day"
+                           }
+                        };
+
+                        var data = [line1, line2];
+                        Plotly.newPlot('time_shuttle', data,layout);
+                    }
+                },'json')
+            }
+
+            $('#btn-shuttle-update').on('click',function () {
+                shuttle_chart()
+            });
+
+            $('.detailAct').on('click','.actMore',function () {
+                var text1 = $(this).data('text1');
+                var text2 = $(this).data('text2');
+                $("#actPrevious").html(text1);
+                $("#actNew").html(text2);
+                $("#actOut").toggle();
+            });
+
+            $('.detailAct').on('click', '#act_more',function () {
+                var page = $(this).data('page')?$(this).data('page'):1;
+                var asin = '{{ res.asin }}';
+                get_radar(asin,page);
+            });
+
+            $('.detailWatcherList').on('click','.screenshotButton',function () {
+               var src = $(this).data('image');
+               $('#screenshot').attr('src',src);
+            });
+
+            $('.detailWatcherList').on('click','#li_watcher_more',function () {
+                var page = $(this).data('page')?parseInt($(this).data('page')):1;
+                var asin = '{{ res.asin }}';
+                get_watchers(page, asin);
+            });
+
+            function get_rank() {
+                var data = {
+                    'asin' : '{{ res.asin }}',
+                    'kwdCat' : $('select[name="kwdCat"]').val(),
+                    'krStartDate' : $('input[name="krStartDate"]').val(),
+                    'krEndDate' : $('input[name="krEndDate"]').val()
+                };
+                $.get('/admin/maxlead_site/ajax_k_rank/',data,function (re) {
+                    if(re.code == 1){
+                        var chart_data = [];
+                        $.each(re.data.chart,function(index,value) {
+                            $.each(value,function(index,val) {
+                                if(index.indexOf("time")<=-1){
+                                    var x = value['time'+index];
+                                    var y = val;
+                                    var name = index;
+                                    var line = {
+                                        x: x,
+                                        y: y,
+                                        type: 'scatter',
+                                        name: name,
+                                        text: name
+                                    };
+                                    chart_data.push(line);
+                                }
+                            });
+                        });
+
+                        var layout = {
+                           xaxis:{
+                                showgrid: false,                  // remove the x-axis grid lines
+                                tickformat: "%m-%d"              // customize the date format to "month, day"
+                           }
+
+
+                        };
+                        Plotly.newPlot('krVisual', chart_data, layout);
+                    }else{
+                        alert(re.msg);
+                    }
+                    return false;
+                },'json');
+            }
+
+            $('#btn_search_rank').on('click',function () {
+                get_rank();
+                return false;
+            });
+
+            $('#ul_words').on('click', '.a_review_keywords', function () {
+                var words = $(this).data('words');
+                $('input[name="words"]').val(words);
+                var data = {
+                    'asin': $(this).data('asin'),
+                    'is_vp':$('select[name="is_vp"]').val(),
+                    'score':$('select[name="score"]').val(),
+                    'rvKwd':$('input[name="rvKwd"]').val(),
+                    'start_date':$('input[name="start_date"]').val(),
+                    'end_date':$('input[name="end_date"]').val(),
+                    'rvSort':$('select[name="rvSort"]').val(),
+                    'words':words
+                };
+                $.get('/admin/maxlead_site/review_search/',data,function (re) {
+                    if(re.code == 1){
+                        var el = '';
+                        $.each(re.data.data,function(index,value){
+                          el += '<tr>'+
+                              '<td><span class="star'+value['score']+'"></span>'+
+                              value['is_vp']+'</td>' +
+                              '<td>'+value['name']+'<!--reviewer名字--><br />'+value['review_date']+'<!--review日期--></td>'+
+                              '<td class="rvInfoRV">'+value['content']+'</td>' +
+                              '</tr>';
+                        });
+                        $('#table-review-list').html(el);
+                        if (re.data.is_page && !$('#btn-review-more')){
+                            $('.rvInfo').append('<button type="button" class="moreButton" id="btn-review-more" data-page="'+re.data.review_page+'">More</button>');
+                        }
+                    }
+                },'json');
+                return false;
+            });
+
+            $('.spider_update').on('click',function () {
+                $.get('/admin/maxlead_site/ajax_update_listing/',{'type':$(this).data('type'),'aid':$(this).data('aid')},function (re) {
+                    alert('更新正在进行。。。');
+                    if(re.code == 0){
+                        alert(re.msg);
+                    }
+                },'json');
+                return false;
+            })
+        </script>
+    {% endblock %}
+

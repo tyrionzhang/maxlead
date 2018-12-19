@@ -1,0 +1,90 @@
+{% extends "layouts/base.html" %}
+
+        {% block container %}
+            <main class="signIn">
+                <form name="userLogin" autocomplete="on" action="/admin/maxlead_site/login/" method="post">
+                    <label>Username: </label>
+                    <input type="text" name="username" value="" autofocus="autofocus" />
+                    <br><br>
+                    <label>Password: </label>
+                    <input type="password" name="password" value="">
+                    <br><br>
+                    <input class="submitButton" type="submit" value="Sign in" id="btn-login"/>
+                </form> 
+                <p id="ifmp">I forget my password</p>
+                <div id="pwdReset" style="display:none;">
+                    <p id="p-repass"><b>Password Reset Request</b></p>
+                    <form action="" name="reset_form">
+                        <label>Username:</label>
+                        <input type="text" id="reusername" name="username" value="" />
+                        <br><br>
+                        <label>Email:</label>
+                        <input type="email" id="reemail" name="email" value="">
+                        <br><br>
+                        <input class="prrButton" type="submit" id="reset_pass" value="Reset" />
+                        <input class="prrButton" id="prrCancel" type="button" value="Cancel">
+                    </form>
+                </div>
+            </main>
+            <script>
+                $(document).ready(function(){
+                  $("form[name='reset_form']").submit(function(e){
+                    e.preventDefault();
+                  });
+                });
+
+                $('#btn-login').on('click',function () {
+                    var data = {
+                      'username':$('input[name="username"]').val(),
+                      'password':$('input[name="password"]').val()
+                    };
+                    $.post('/admin/maxlead_site/login/',data,function (re) {
+                       if(re.code==0){
+                           alert(re.msg);
+                       }
+                       if(re.code==1){
+                           window.location.href='/admin/maxlead_site/dashboard/';
+                       }
+                    },'json');
+                    return false;
+                });
+
+                $('#reset_pass').on('click',function () {
+                    var username = $('#reusername').val();
+                    var email = $('#reemail').val();
+                    if (!username) {
+                        $('#p-repass').after("<span id='error-span'><b style='" +
+                        "    line-height: 18px;\n" +
+                        "    color: red;\n" +
+                        "    font-size: 14px;\n" +
+                        "    font-weight: 100;\n" +
+                        "    margin-left: 12px;'>Username may not be empty！</b></span>");
+                        return false;
+                    }
+                    if (!email) {
+                        $('#p-repass').after("<span id='error-span'><b style='" +
+                        "    line-height: 18px;\n" +
+                        "    color: red;\n" +
+                        "    font-size: 14px;\n" +
+                        "    font-weight: 100;\n" +
+                        "    margin-left: 12px;'>Email may not be empty！</b></span>");
+                        return false;
+                    }
+                    var data = {
+                        'username':username,
+                        'email':email
+                    };
+                    $.post('/admin/maxlead_site/forget_pass/',data,function (re) {
+                        $('#error-span').remove();
+                        if (re.code == 0) {
+                            alert(re.msg)
+                        }else {
+                            alert(re.msg);
+                            window.location.href="/admin/maxlead_site/login"
+                        }
+                    })
+                })
+            </script>
+        {% endblock %}
+
+

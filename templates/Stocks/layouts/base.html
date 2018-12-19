@@ -1,0 +1,202 @@
+<!-- head.php BEGIN -->
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <meta name="description" content="">
+        <meta name="keywords" content="">
+        <META NAME="ROBOTS" CONTENT="NOINDEX, NOFOLLOW">
+        <!--<link rel="shortcut icon" href="favicon.ico" type="image/vnd.microsoft.icon">-->
+        <link rel="stylesheet" href="/static/max_stock/css/stock_style.css" type="text/css">
+        <script src="/static/max_stock/js/jquery-3.3.1.min.js"></script>
+        <script src="/static/max_stock/js/stocks.js"></script>
+        <style>
+            .header-right {
+                position: absolute;
+                display: inline-block;
+                left: 195px;
+                top: 9px;
+            }
+            .header-right a {
+                color: white;
+                padding-right: 17px;
+                text-decoration: none;
+            }
+
+            .header-right a:hover {
+                color: #cccccc;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="wrapper">
+		<div id="header">
+			<!-- <ul class="ul-name-list">
+				<li class="checked">Exl</li>
+				<li>Twu</li>
+				<li>Hanover</li>
+				<li>Ill</li>
+				<li>Wa</li>
+				<li>Ego</li>
+			</ul> -->
+			<h3>Welcome,<a href="javascript:;" style="text-decoration: none;color: white;" id="user_info">{{ user.user.username }}</a>!</h3>
+            <div class="header-right">
+                <a href="/admin/max_stock/index/?menu_id=-1" {% if user.index_menu_id == -1 %}style="color: #cccccc;"{% endif %}>Index</a>
+                {% for val in user.menu_list %}
+                    <a href="{{ val.url }}?menu_id={{ val.id }}" {% if user.index_menu_id == val.id %}style="color: #cccccc;"{% endif %}>{{ val.name }}</a>
+                {% endfor %}
+            </div>
+            <div class="header-left">
+                <a href="javascript:;" class="a-run-spiders" target="_blank">Run Spiders</a>
+                <a href="/admin/max_stock/logout/" class="a-logout">Logout</a>
+            </div>
+		</div>
+		<div id="body" class="clearfix">
+			<div id="aside">
+				<div class="logo">
+					<img src="/static/max_stock/img/logo.jpg" alt="" style="width: 100%;">
+				</div>
+				<div class="menu">
+					<ul class="ul-menu">
+                        {% for val in user.menu_child %}
+						<li id="{{ val.elem_id }}"><a href="{{ val.url }}?menu_id={{ user.index_menu_id }}">{{ val.name }}</a></li>
+                        {% endfor %}
+					</ul>
+				</div>
+			</div>
+<!-- head.php END -->
+
+    {%  block container%}
+
+    {% endblock %}
+<!-- footer.php BEGIN -->
+		</div>
+		<!-- <div id="footer">footer</div> -->
+</div>
+<div class="wrap-paper hide"></div>
+	<div class="save-threshold hide save-block-info">
+		<form action="" id="form_threshold">
+			<span class="btn-close">x</span>
+			<h2 style="margin: 0 0px 0 164px;">库存阈值设置</h2>
+			<label class="lab-post-param">
+				<span>SKU:</span>
+				<input type="text" name="sku">
+			</label>
+			<div class="text-box" style="float: none;margin-left: 30px;">
+                <label>
+                    <span>Warehouse:</span>
+                    <select name="sel_warehouse">
+                        <option value="EXL">EXL</option>
+                        <option value="TWU">TWU</option>
+                        <option value="Hanover">Hanover</option>
+                        <option value="ILL">ILL</option>
+                        <option value="WA">WA</option>
+                        <option value="EGO">EGO</option>
+                    </select>
+                </label>
+            </div>
+			<label class="lab-post-param">
+				<span>Threshold:</span>
+				<input type="text" name="threshold">
+			</label>
+			<div>
+				<input type="submit" value="Save" id="btn-threshold">
+			</div>
+		</form>
+	</div>
+    <div class="save_user hide save-block-info" id="save_userinfo">
+		<form action="" id="form_userinfo">
+			<span class="btn-close">x</span>
+			<h2 style="margin: 0 0px 0 164px;">用户数据</h2>
+			<label class="lab-post-param">
+				<span>Username:</span>
+				<input type="text" name="username_info">
+			</label>
+            <label class="lab-post-param">
+				<span>Password:</span>
+				<input type="password" name="password_info">
+			</label>
+            <label class="lab-post-param">
+				<span>Email:</span>
+				<input type="text" name="email_info">
+			</label>
+            <label class="lab-post-param">
+				<span>Other Email:</span>
+				<input type="text" name="other_email_info">
+			</label>
+            <label class="lab-post-param">
+				<span>Email Pass:</span>
+				<input type="password" name="email_pass_info">
+			</label>
+            <label class="lab-post-param">
+				<span>Smtp Server:</span>
+				<input type="text" name="smtp_server_info">
+			</label>
+            <input type="hidden" name="id_info" value="{{ user.user.id }}">
+			<div>
+				<input type="submit" value="Save" id="btn_user_info">
+			</div>
+		</form>
+    </div>
+        <script>
+            $(document).ready(function(){
+                $('.a-run-spiders').on('click',function () {
+                    if(confirm('Runing spiders?')){
+                        $(this).attr('href','/admin/max_stock/stock_spiders?type=now')
+                    }
+                });
+
+                $('#user_info').on('click',function () {
+                    $('.wrap-paper').removeClass('hide');
+                    $('#save_userinfo').removeClass('hide');
+                    $('#form_userinfo')[0].reset();
+
+                    var username = '{{ user.user.username }}';
+                    var email = '{{ user.user.email }}';
+                    var other_email = '{{ user.other_email }}';
+                    var smtp_server = '{{ user.smtp_server }}';
+                    var id = {{ user.user.id }};
+                    $('input[name="username_info"]').val(username);
+                    $('input[name="email_info"]').val(email);
+                    $('input[name="other_email_info"]').val(other_email);
+                    $('input[name="smtp_server_info"]').val(smtp_server);
+                });
+
+                $('body').on('click','.wrap-paper' , function(){
+                    $('.wrap-paper').addClass('hide');
+                    $('#save_userinfo').addClass('hide');
+                });
+
+               $('#btn_user_info').on('click',function () {
+                    var id = $('input[name="id_info"]').val();
+                    var data = {
+                      'username':$('input[name="username_info"]').val(),
+                      'password':$('input[name="password_info"]').val(),
+                      'email':$('input[name="email_info"]').val(),
+                      'other_email':$('input[name="other_email_info"]').val(),
+                      'email_pass':$('input[name="email_pass_info"]').val(),
+                      'smtp_server':$('input[name="smtp_server_info"]').val(),
+                      'id':id
+                    };
+                    if (!id){
+                        $(this).attr("disabled", true);
+                    }
+                    $.post('/admin/max_stock/user_save/',data,function (re) {
+                       if(re.code==0 || re.code==1){
+                           alert(re.msg);
+                           if(re.code==1){
+                               window.location.reload();
+                           }
+                       }
+                       if(re.code==66){
+                           window.location.href='/admin/max_stock/login/';
+                       }
+                    },'json');
+                    return false;
+                });
+            });
+        </script>
+</body>
+</html>
+<!-- footer.php END -->
+
